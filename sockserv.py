@@ -18,6 +18,7 @@ pwm = PWM(0x42)
 #Servoname, Calibrate, Current_pos
 
 walkpos = 0
+tester = 123
 
 servoset = [
     ["servo00", 368, 368],  # Foot right
