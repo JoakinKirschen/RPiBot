@@ -1,0 +1,206 @@
+2015-11-11  Joakin  <joakin@laptop>
+
+ * 
+
+
+
+from __future__ import division
+import tornado.httpserver
+import tornado.ioloop
+import tornado.options
+import tornado.web
+import tornado.websocket
+import RPi.GPIO as GPIO
+from Adafruit_PWM_Servo_Driver import PWM
+import time
+
+
+	
+
+# Initialise the PWM device using the default address
+pwm = PWM(0x42)
+
+#Servoname, Calibrate, Current_pos
+
+servoset = [
+	["servo00", 368, 368], #Foot right
+	["servo01", 380, 380], #Foot left
+	["servo02", 499, 499], #Leg right bottom
+	["servo03", 479, 479], #Leg left bottom
+	["servo04", 348, 348], #Leg right mid
+	["servo05", 374, 374], #Leg left mid
+	["servo06", 528, 528], #Leg right top
+	["servo07", 260, 260], #Leg left top
+	["servo08", 300, 300], #Hip right
+	["servo09", 485, 485], #Hip left
+	["servo10", 375, 375],
+	["servo11", 375, 375],
+	["servo12", 375, 375],
+	["servo13", 375, 375],
+	["servo14", 375, 375],
+	["servo15", 375, 375]
+]
+
+servoMin = 150  # Min pulse length out of 4096
+servoMax = 600  # Max pulse length out of 4096
+
+
+# ===========================================================================
+# Example Code
+# ===========================================================================
+class motion:
+
+	# Initialise the PWM device using the default address
+#	pwm = PWM(0x40)
+	# Note if you'd like more debug output you can instead run:
+	#pwm = PWM(0x40, debug=True)
+	def servo_update_sliders(self):
+		channel = 0
+		while channel != (len(servoset)-1): 
+			mes = "002" + servoset[channel][0] + "%d" % (servoset[channel][2]-servoset[channel][1])
+			send_to_all_clients(mes)
+			channel += 1
+
+	def servo_reset_sliders(self):
+		channel = 0
+		while channel != (len(servoset)-1): 
+			mes = "002" + servoset[channel][0] + "%d" % (servoset[channel][2]-servoset[channel][1])
+			send_to_all_clients(mes)
+			channel += 1
+		send_to_all_clients("002" + "servo20" + "0")
+	
+	
+	def servo_set(self, channel, pos, incr ): 
+		pwm.setPWMFreq(60) 
+		if incr==1:
+			servoset[channel][2] = servoset[channel][2] + pos
+		else:
+			servoset[channel][2] = servoset[channel][1] + pos
+		pwm.setPWM(channel, 0, int(servoset[channel][2]))
+		print "Servo: %d - Position %d" % (channel, servoset[channel][2])
+
+	def g_left_right(self, pos, incr ):
+		self.servo_set(9,-pos,incr)
+		self.servo_set(8,-pos,incr)
+		self.servo_set(1,-pos,incr)
+		self.servo_set(0,-pos,incr)
+
+	def servo_walk(self, speed ): #startpos #endpos #startime #steps make loop with time range arrays to tell servos when to hit
+		servomov=[
+		[[0,25,0,10],[0,15,10,10]],     				#servo0	Foot right:
+		[[0,25,0,10],[0,25,0,10]],    							#servo1 Foot left:
+		[[0,0,0,10]],    							#servo2	
+		[[0,0,0,10]],    	 						#servo3	
+		[[0,0,0,10],[60,0,10,5]],    							#servo4	
+		[[0,0,0,10]],    							#servo5	
+		[[0,0,0,10],[128,0,10,5]],    							#servo6	
+		[[0,0,0,10]],    							#servo7	
+		[[0,40,0,10]],    							#servo8	
+		[[0,40,0,10]]    							#servo9
+		]    							
+		x = 0
+		while x < 100:
+			y = 0
+			while y < len(servomov):
+				seq = 0
+				while seq < len(servomov[y]):
+					if servomov[y][seq][2] <= x < servomov[y][seq][3] + servomov[y][seq][2]:
+						pos = servomov[y][seq][1] / servomov[y][seq][3]
+						self.servo_set(y,pos,1)
+						self.servo_update_sliders()
+					seq += 1
+				y += 1 
+					  
+			time.sleep(0.2)
+			x = x + 1
+		
+	def servo_reset(self):
+		pwm.setPWMFreq(60)					   # Set frequency to 60 Hz
+		y = 0
+		resolution = 20.0
+		devider = []
+		while y < len(servoset):
+			devider.append((servoset[y][2] - servoset[y][1])/resolution)
+			print "Loop trough %d" % devider[y]
+			y += 1
+		x = 0
+		while x < resolution:
+			y = 0	
+			while y < len(servoset):
+				self.servo_set(y,-devider[y],1)
+				self.servo_update_sliders()
+				y = y + 1 
+			time.sleep(0.02)
+			x += 1
+		x = 0
+		while x < len(servoset): 
+			self.servo_set(x, 0, 0)
+			print "Loop trough %d" % x
+			x += 1
+			time.sleep(0.02)
+
+
+m = motion()	
+ 
+from tornado.options import define, options
+define("port", default=8090, help="run on the given port", type=int)
+
+clients = []
+
+def send_to_all_clients(msg):
+	for client in clients:
+		client.write_message(msg)
+ 
+class IndexHandler(tornado.web.RequestHandler):
+	def get(self):
+		self.render('index.html')
+ 
+class WebSocketHandler(tornado.websocket.WebSocketHandler):
+	def open(self):
+		print 'new connection'
+		send_to_all_clients("new client")
+		clients.append(self)
+		
+	def refresh_slider(self, message):
+		print 'resetting'
+ 
+	def on_message(self, message):
+		print 'message received %s' % message
+		self.write_message(message)
+		channel = int(message[0:3])
+		pos = int(message[3:])
+		if channel < 16:
+			m.servo_set(channel,pos,0)
+			print "channel: %d angle: %d" % (channel, pos)
+		if channel == 20:
+			m.g_left_right(pos, 0)
+			print "channel: %d angle: %d" % (channel, pos)
+			m.servo_update_sliders()
+		if channel == 30:
+			m.servo_reset()
+			self.write_message("reset")
+			m.servo_reset_sliders()
+		if channel == 31:#walk function from commandline hier gebleven
+			self.write_message("walking")
+			m.servo_walk(100)
+ 
+	def on_close(self):
+		clients.remove(self)
+		send_to_all_clients("removing client")
+		print 'connection closed'
+ 
+if __name__ == "__main__":
+	tornado.options.parse_command_line()
+	app = tornado.web.Application(
+		handlers=[
+			(r"/", IndexHandler),
+			(r"/ws", WebSocketHandler),
+			(r"/js/(.*)",tornado.web.StaticFileHandler, {"path": "./js"},),
+			(r"/css/(.*)",tornado.web.StaticFileHandler, {"path": "./css"},)
+		]
+	)
+	httpServer = tornado.httpserver.HTTPServer(app)
+	httpServer.listen(options.port)
+	print "Listening on port:", options.port
+	tornado.ioloop.IOLoop.instance().start()
+

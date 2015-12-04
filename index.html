@@ -1,0 +1,199 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <style>
+        body { margin: 0px; padding: 0px; }
+        canvas { border: 1px solid #9C9898; }
+        slider { border: 3px solid #9C9898; padding: 10px; }
+    </style>
+    <link rel="stylesheet" href="css/robot.css">
+    <link rel="stylesheet" href="css/roundslider.min.css">
+    <script src="js/mediastream.js"></script>
+    <script src="js/sliders.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css"/>
+    <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery/1.11.3/jquery.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/jquery.roundslider/1.0/roundslider.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/jquery.roundslider/1.0/roundslider.min.js"></script>
+    <script>
+        function errorFunction() {
+             alert('Stream stopped');
+        }
+    </script>
+    <script>
+
+      var socket = new WebSocket("ws://192.168.0.152:8090/ws");
+
+      socket.onopen = function(){
+        console.log("connected");
+      };
+//exec code
+//002:update slider values
+      socket.onmessage = function (message) {
+      execcode=(message.data.substring(0, 3))
+      console.log("execcode: " + execcode)
+        if (execcode == "001")
+        {
+            console.log("It worked");
+        }
+        if (execcode == "002")//update slider values
+        {
+            console.log("Updating slider");
+            var inchannel =  parseInt(message.data.substring(8, 10));
+            var inposition =  parseInt(message.data.substring(10, 13));
+            console.log("receiving channel: " + inchannel + "  position:" + inposition);
+            $( "#slider".concat(inchannel)).val(inposition).slider("refresh");
+        }
+      };
+
+      socket.onclose = function(){
+        console.log("disconnected");
+      };
+
+      sendmsg = function(chan, msg) {
+        var message = chan + msg;
+        socket.send(message);
+      };
+    </script>
+    <script type="text/javascript">
+    //<![CDATA[
+        $(window).load(function(){
+        $("#slider0, #slider1, #slider2, #slider3, #slider4, #slider5, #slider6, #slider7, #slider8, #slider9, #slider20, #slider15").change(function() {
+            sVal = $(this).val();
+            sName = $(this).attr("id").substring(6);
+            var pref = "000".substring(sName.length).concat(sName);
+            sendmsg(pref, sVal);
+            console.log("receiving: " + sVal + sName);
+
+        });
+        $('#reset').click(function() {
+            sendmsg("030","0");
+        });
+        $("#command").keyup(function(){
+            sVal = $(this).val();
+            if (sVal == "reset"){sendmsg("030","0")};
+            if (sVal == "walk"){sendmsg("031","0")};
+            if (sVal == "w2"){sendmsg("032","0")};
+        });
+        $("#sliderA").roundSlider({
+            drag: function (e) {
+            console.log(e.value);
+            sendmsg("040", e.value)
+            }
+        });
+        });//]]>
+    </script>
+
+    <title>
+
+            Humanoid Robot
+
+    </title>
+  </head>
+  <body>
+    <div id="body">
+    <div id="reset">
+    <input type="reset" value="Reset Button" />
+    </div>
+    <div id="header" class="cf"></div>
+    <div id="main" class="cf">
+        <div id="content-1">
+
+                    <p>
+                    <label for="slider9">9 Hip left:</label>
+                    <input type="range" name="slider" id="slider9" value="0" min="-100" max="100"  />
+                    </p>
+
+
+                    <p>
+                    <label for="slider7">7 Leg left:</label>
+                    <input type="range" name="slider" id="slider7" value="0" min="-200" max="200"  />
+                    </p>
+
+
+                    <p>
+                    <label for="slider5">5 Leg left:</label>
+                    <input type="range" name="slider" id="slider5" value="0" min="-200" max="200"  />
+                    </p>
+
+                    <p>
+                    <label for="slider3">3 Leg left:</label>
+                    <input type="range" name="slider" id="slider3" value="0" min="-200" max="200"  />
+                    </p>
+
+                    <p>
+                    <label for="slider1">1 Foot left:</label>
+                    <input type="range" name="slider" id="slider1" value="0" min="-100" max="100"  />
+                    </p>
+
+
+        </div>
+    <div id="content-2">
+        <div id="content-2-1">
+                    <p>
+                    <label for="slider20">Hip movement:</label>
+                    <input type="range" name="slider" id="slider20" value="0" min="-100" max="100"  />
+                    </p>
+                    <p>
+                    <label for="slider15">Camera rotate:</label>
+                    <input type="range" name="slider" id="slider15" value="0" min="-100" max="100"  />
+                    </p>
+                    <input required type="text" id="command" title="<host>:<port>, default address is autodetected"/><br>
+        <div id="container">
+            <div id="remote">
+                <video id="remote-video" autoplay=""  style="border:1px solid" width="400" height="300">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+
+        <div id="controls">
+            Signalling Server Address: <input required type="text" id="signalling_server2" value="192.168.0.152:8080" title="<host>:<port>, default address is autodetected"/><br>
+            <label for="twoway_audio">Enable two-way audio</label>
+            <input type="checkbox" id="twoway_audio" name="twoway_audio" value="0" title="stream from a local audio input source (e.g. microphone) to the remote peer"><br>
+            <button id="start" onclick="start();">Start</button>
+            <button disabled id="stop" onclick="stop();">Stop</button>
+            <button id="mute" onclick="mute();">Mute/Unmute</button>
+            <button id="fullscreen" onclick="fullscreen();">Fullscreen</button>
+        </div><br>
+        <a target="_top" href="/">home</a>&nbsp;<a href="http://192.168.0.152:8080/panel" target="_blank" title="change the image settings on-the-fly">control panel</a>
+<!--    <a target="_top" href="/">home</a>&nbsp;<a href="/panel" target="_blank" title="change the image settings on-the-fly">control panel</a>-->
+        </div>
+        <div id="content-2-2">
+            
+                    <div id="sliderA"></div>
+                    <p>
+                    <label for="slider8">8 Hip right:</label>
+                    <input type="range" name="slider" id="slider8" value="0" min="-100" max="100"  />
+                    </p>
+                    <p>
+                    <label for="slider6">6 Leg right:</label>
+                    <input type="range" name="slider" id="slider6" value="0" min="-200" max="200"  />
+                    </p>
+                    <p>
+                    <label for="slider4">4 Leg right:</label>
+                    <input type="range" name="slider" id="slider4" value="0" min="-200" max="200"  />
+                    </p>
+                    <p>
+                    <label for="slider2">2 Leg right:</label>
+                    <input type="range" name="slider" id="slider2" value="0" min="-200" max="200"  />
+                    </p>
+                    <p>
+                    <label for="slider0">0 Foot right:</label>
+                    <input type="range" name="slider" id="slider0" value="0" min="-100" max="100"  />
+                    </p>
+
+        </div>
+    </div>
+
+    </div>
+    <div id="footer" class="cf"></div>
+    </div>
+    </div>
+    </div>
+  </body>
+</html>
+
