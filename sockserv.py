@@ -18,7 +18,6 @@ pwm = PWM(0x42)
 #Servoname, Calibrate, Current_pos
 
 walkpos = 0
-tester = 123
 
 servoset = [
     ["servo00", 368, 368],  # Foot right
@@ -120,8 +119,8 @@ class motion:
     # pwm = PWM(0x40)
     # Note if you'd like more debug output you can instead run:
     # pwm = PWM(0x40, debug=True)
-    def __init__(self):
-        
+    ticks1 = servomov_ticks(servomov1)
+    ticks2 = servomov_ticks(servomov2)    
     
     def servomov_max(self,matrix):
         x = 0
