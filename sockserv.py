@@ -119,17 +119,15 @@ class motion:
     # pwm = PWM(0x40)
     # Note if you'd like more debug output you can instead run:
     # pwm = PWM(0x40, debug=True)
-    ticks1 = servomov_ticks(servomov1)
-    ticks2 = servomov_ticks(servomov2)    
     
-    def servomov_max(self,matrix):
+    def servomov_ticks(self, matrix):
         x = 0
         y = 0
         max = 0
         while x < len(matrix):
             while y < len(matrix[x][y]):
-                    if max < (matrix[x][y][2] + matrix[x][y][3]):
-                        max = (matrix[x][y][2] + matrix[x][y][3])
+                if max < (matrix[x][y][2] + matrix[x][y][3]):
+                    max = (matrix[x][y][2] + matrix[x][y][3])
                 y += 1
             x += 1 
         return max
@@ -163,12 +161,16 @@ class motion:
 # startpos #endpos #startime #steps
 # make loop with time range arrays to tell servos when to hit
     def servo_walk(self, speed, patern):
-        if patern == 1: array = servomov1
-        if patern == 2: array = servomov2
+        if patern == 1:
+            array = servomov1
+            tick = ticks1
+        if patern == 2: 
+            array = servomov2
+            tick = ticks2
         z = 0
         while z < 2:
             x = 0
-            while x < 20:
+            while x < tick:
                 y = 0
                 while y < len(array):
                     seq = 0
@@ -181,26 +183,27 @@ class motion:
                 time.sleep(0.1)
                 x += 1
             z += 1
-    def servo_slider(self, possition, patern):
-        if patern == 1: array = servomov1
-        if patern == 2: array = servomov2
-        walkpos = possition
-        z = 0
-        while z < 2:
-            x = 0
-            while x < 20:
-                y = 0
-                while y < len(array):
-                    seq = 0
-                    while seq < len(array[y]):
-                        if array[y][seq][2] <= x < array[y][seq][3] + array[y][seq][2]:
-                            pos = array[y][seq][1] / array[y][seq][3]
-                            self.servo_set(y, pos, 1)
-                        seq += 1
-                    y += 1
-                time.sleep(0.1)
-                x += 1
-            z += 1
+    def servo_slider(self, position, patern):
+        if patern == 1:
+            array = servomov1
+            tick = ticks1
+        if patern == 2: 
+            array = servomov2
+            tick = ticks2
+        walkpos = position
+        x = 0
+        while x < position:
+            y = 0
+            while y < len(array):
+                seq = 0
+                while seq < len(array[y]):
+                    if array[y][seq][2] <= x < array[y][seq][3] + array[y][seq][2]:
+                        pos = array[y][seq][1] / array[y][seq][3]
+                        self.servo_set(y, pos, 1)
+                    seq += 1
+                y += 1
+            # time.sleep(0.1)
+            x += 1
     def servo_reset(self):
 #        pwm.setPWMFreq(60)                       # Set frequency to 60 Hz
         walkpos = 0
@@ -229,6 +232,8 @@ class motion:
 
 
 m = motion()
+ticks1 = m.servomov_ticks(servomov1)
+ticks2 = m.servomov_ticks(servomov2)
 
 from tornado.options import define, options
 define("port", default=8090, help="run on the given port", type=int)
@@ -275,8 +280,8 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             m.servo_walk(100,2)
         if channel == 40:  # walk possition slider
             self.write_message("walking")
-            # m.servo_slider(pos,1)
-            print "step: %d possition: %d" % (channel, pos)
+            m.servo_slider(pos,1)
+            print "step: %d position: %d" % (channel, pos)
 
     def on_close(self):
         clients.remove(self)
