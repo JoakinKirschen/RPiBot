@@ -72,6 +72,17 @@ servomov1 = [
         [0, -22, 10, 2], [0, 22, 15, 5], [0, 0, 15, 0]]
 ]
 
+steps1 = 
+x = 0
+y = 0
+max = 0
+while x < len(servomov1):
+    while y < len(servomov1[x][y]):
+            if max < (servomov1[x][y][2] + servomov1[x][y][3]):
+                max = (servomov1[x][y][2] + servomov1[x][y][3])
+        y += 1
+    x += 1
+
 servomov2 = [
         # servo0 Foot right:
         [[0, 40, 0, 5], [0, -40, 5, 5], [0, 0, 5, 0],
@@ -105,6 +116,8 @@ servomov2 = [
         [0, -22, 10, 2], [0, 22, 15, 5], [0, 0, 15, 0]]
 ]
 
+
+
 servoMin = 150  # Min pulse length out of 4096
 servoMax = 600  # Max pulse length out of 4096
 
@@ -118,6 +131,8 @@ class motion:
     # pwm = PWM(0x40)
     # Note if you'd like more debug output you can instead run:
     # pwm = PWM(0x40, debug=True)
+    
+    
     def servo_update_slider(self, channel, curpos, newpos):
         if curpos != newpos:
             mes = "002" + servoset[channel][0] + "%d" % (newpos)
