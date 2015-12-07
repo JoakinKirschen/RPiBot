@@ -10,104 +10,8 @@ import time
 import math
 
 
-
-
 # Initialise the PWM device using the default address
 pwm = PWM(0x42)
-
-#Servoname, Calibrate, Current_pos
-
-walkpos = 0
-
-servoset = [
-    ["servo00", 368, 368],  # Foot right
-    ["servo01", 380, 380],  # Foot left
-    ["servo02", 499, 499],  # Leg right bottom
-    ["servo03", 479, 479],  # Leg left bottom
-    ["servo04", 348, 348],  # Leg right mid
-    ["servo05", 374, 374],  # Leg left mid
-    ["servo06", 528, 528],  # Leg right top
-    ["servo07", 260, 260],  # Leg left top
-    ["servo08", 380, 380],  # Hip right
-    ["servo09", 485, 485],  # Hip left
-    ["servo10", 375, 375],
-    ["servo11", 375, 375],
-    ["servo12", 375, 375],
-    ["servo13", 375, 375],
-    ["servo14", 375, 375],
-    ["servo15", 304, 304]  # Rotate camera
-]
-
-servomov1 = [
-        # servo0 Foot right:
-        [[0, 40, 0, 5], [0, -40, 5, 5], [0, 0, 5, 0],
-        [0, -40, 10, 5], [0, 40, 15, 5], [0, 0, 15, 0]],
-        # servo1 Foot left:
-        [[0, 40, 0, 5], [0, -40, 5, 5], [0, 0, 5, 0],
-        [0, -40, 10, 5], [0, 40, 15, 5], [0, 0, 15, 0]],
-        # servo2 Leg right bottom:
-        [[0, 0, 0, 5], [0, 0, 5, 5], [0, 0, 5, 0],
-        [0, 15, 10, 5], [0, -15, 15, 5], [0, 0, 15, 0]],
-        # servo3 Leg left bottom:
-        [[0, 0, 0, 5], [0, -15, 5, 5], [0, 0, 5, 0],
-        [0, 15, 10, 5], [0, 0, 15, 5], [0, 0, 15, 0]],
-        # servo4 Leg right middle:
-        [[0, 60, 0, 5], [0, -60, 5, 5], [0, 0, 5, 0],
-        [0, 0, 10, 5], [0, 0, 15, 5], [0, 0, 15, 0]],
-        # servo5 Leg left middle:
-        [[0, 0, 0, 5], [0, 0, 5, 5], [0, 0, 5, 0],
-        [0, -60, 10, 5], [0, 60, 15, 5], [0, 0, 15, 0]],
-        # servo6 Leg right top:
-        [[0, 130, 0, 5], [0, -130, 5, 5], [0, 0, 5, 0],
-        [0, 0, 10, 5], [0, 0, 15, 5], [0, 0, 15, 0]],
-        # servo7 Leg left top:
-        [[0, 0, 0, 5], [0, 0, 5, 5], [0, 0, 5, 0],
-        [ 0, -130, 10, 5], [0, 130, 15, 5], [0, 0, 15, 0]],
-        # servo8 Hip right:
-        [[0, 22, 0, 2], [0, -22, 5, 5], [0, 0, 5, 0],
-        [0, -22, 10, 2], [0, 22, 15, 5], [0, 0, 15, 0]],
-        # servo9 Hip left:
-        [[0, 22, 0, 2], [0, -22, 5, 5], [0, 0, 5, 0],
-        [0, -22, 10, 2], [0, 22, 15, 5], [0, 0, 15, 0]]
-]
-
-servomov2 = [
-        # servo0 Foot right:
-        [[0, 40, 0, 5], [0, -40, 5, 5], [0, 0, 5, 0],
-        [0, -40, 10, 5], [0, 40, 15, 5], [0, 0, 15, 0]],
-        # servo1 Foot left:
-        [[0, 40, 0, 5], [0, -40, 5, 5], [0, 0, 5, 0],
-        [0, -40, 10, 5], [0, 40, 15, 5], [0, 0, 15, 0]],
-        # servo2 Leg right bottom:
-        [[0, 0, 0, 5], [0, 0, 5, 5], [0, 0, 5, 0],
-        [0, 15, 10, 5], [0, -15, 15, 5], [0, 0, 15, 0]],
-        # servo3 Leg left bottom:
-        [[0, 0, 0, 5], [0, -15, 5, 5], [0, 0, 5, 0],
-        [0, 15, 10, 5], [0, 0, 15, 5], [0, 0, 15, 0]],
-        # servo4 Leg right middle:
-        [[0, 60, 0, 5], [0, -60, 5, 5], [0, 0, 5, 0],
-        [0, 0, 10, 5], [0, 0, 15, 5], [0, 0, 15, 0]],
-        # servo5 Leg left middle:
-        [[0, 0, 0, 5], [0, 0, 5, 5], [0, 0, 5, 0],
-        [0, -60, 10, 5], [0, 60, 15, 5], [0, 0, 15, 0]],
-        # servo6 Leg right top:
-        [[0, 130, 0, 5], [0, -130, 5, 5], [0, 0, 5, 0],
-        [0, 0, 10, 5], [0, 0, 15, 5], [0, 0, 15, 0]],
-        # servo7 Leg left top:
-        [[0, 0, 0, 5], [0, 0, 5, 5], [0, 0, 5, 0],
-        [ 0, -130, 10, 5], [0, 130, 15, 5], [0, 0, 15, 0]],
-        # servo8 Hip right:
-        [[0, 22, 0, 2], [0, -22, 5, 5], [0, 0, 5, 0],
-        [0, -22, 10, 2], [0, 22, 15, 5], [0, 0, 15, 0]],
-        # servo9 Hip left:
-        [[0, 22, 0, 2], [0, -22, 5, 5], [0, 0, 5, 0],
-        [0, -22, 10, 2], [0, 22, 15, 5], [0, 0, 15, 0]]
-]
-
-
-
-servoMin = 150  # Min pulse length out of 4096
-servoMax = 600  # Max pulse length out of 4096
 
 
 # ===========================================================================
@@ -120,7 +24,102 @@ class motion:
     # Note if you'd like more debug output you can instead run:
     # pwm = PWM(0x40, debug=True)
     
-    def servomov_ticks(self, matrix):
+    
+    #Servoname, Calibrate, Current_pos
+
+    walkpos = 0
+
+    servoset = [
+        ["servo00", 368, 368],  # Foot right
+        ["servo01", 380, 380],  # Foot left
+        ["servo02", 499, 499],  # Leg right bottom
+        ["servo03", 479, 479],  # Leg left bottom
+        ["servo04", 348, 348],  # Leg right mid
+        ["servo05", 374, 374],  # Leg left mid
+        ["servo06", 528, 528],  # Leg right top
+        ["servo07", 260, 260],  # Leg left top
+        ["servo08", 380, 380],  # Hip right
+        ["servo09", 485, 485],  # Hip left
+        ["servo10", 375, 375],
+        ["servo11", 375, 375],
+        ["servo12", 375, 375],
+        ["servo13", 375, 375],
+        ["servo14", 375, 375],
+        ["servo15", 304, 304]  # Rotate camera
+    ]
+
+    servomov1 = [
+            # servo0 Foot right:
+            [[0, 40, 0, 5], [0, -40, 5, 5], [0, 0, 5, 0],
+            [0, -40, 10, 5], [0, 40, 15, 5], [0, 0, 15, 0]],
+            # servo1 Foot left:
+            [[0, 40, 0, 5], [0, -40, 5, 5], [0, 0, 5, 0],
+            [0, -40, 10, 5], [0, 40, 15, 5], [0, 0, 15, 0]],
+            # servo2 Leg right bottom:
+            [[0, 0, 0, 5], [0, 0, 5, 5], [0, 0, 5, 0],
+            [0, 15, 10, 5], [0, -15, 15, 5], [0, 0, 15, 0]],
+            # servo3 Leg left bottom:
+            [[0, 0, 0, 5], [0, -15, 5, 5], [0, 0, 5, 0],
+            [0, 15, 10, 5], [0, 0, 15, 5], [0, 0, 15, 0]],
+            # servo4 Leg right middle:
+            [[0, 60, 0, 5], [0, -60, 5, 5], [0, 0, 5, 0],
+            [0, 0, 10, 5], [0, 0, 15, 5], [0, 0, 15, 0]],
+            # servo5 Leg left middle:
+            [[0, 0, 0, 5], [0, 0, 5, 5], [0, 0, 5, 0],
+            [0, -60, 10, 5], [0, 60, 15, 5], [0, 0, 15, 0]],
+            # servo6 Leg right top:
+            [[0, 130, 0, 5], [0, -130, 5, 5], [0, 0, 5, 0],
+            [0, 0, 10, 5], [0, 0, 15, 5], [0, 0, 15, 0]],
+            # servo7 Leg left top:
+            [[0, 0, 0, 5], [0, 0, 5, 5], [0, 0, 5, 0],
+            [ 0, -130, 10, 5], [0, 130, 15, 5], [0, 0, 15, 0]],
+            # servo8 Hip right:
+            [[0, 22, 0, 2], [0, -22, 5, 5], [0, 0, 5, 0],
+            [0, -22, 10, 2], [0, 22, 15, 5], [0, 0, 15, 0]],
+            # servo9 Hip left:
+            [[0, 22, 0, 2], [0, -22, 5, 5], [0, 0, 5, 0],
+            [0, -22, 10, 2], [0, 22, 15, 5], [0, 0, 15, 0]]
+    ]
+
+    servomov2 = [
+            # servo0 Foot right:
+            [[0, 40, 0, 5], [0, -40, 5, 5], [0, 0, 5, 0],
+            [0, -40, 10, 5], [0, 40, 15, 5], [0, 0, 15, 0]],
+            # servo1 Foot left:
+            [[0, 40, 0, 5], [0, -40, 5, 5], [0, 0, 5, 0],
+            [0, -40, 10, 5], [0, 40, 15, 5], [0, 0, 15, 0]],
+            # servo2 Leg right bottom:
+            [[0, 0, 0, 5], [0, 0, 5, 5], [0, 0, 5, 0],
+            [0, 15, 10, 5], [0, -15, 15, 5], [0, 0, 15, 0]],
+            # servo3 Leg left bottom:
+            [[0, 0, 0, 5], [0, -15, 5, 5], [0, 0, 5, 0],
+            [0, 15, 10, 5], [0, 0, 15, 5], [0, 0, 15, 0]],
+            # servo4 Leg right middle:
+            [[0, 60, 0, 5], [0, -60, 5, 5], [0, 0, 5, 0],
+            [0, 0, 10, 5], [0, 0, 15, 5], [0, 0, 15, 0]],
+            # servo5 Leg left middle:
+            [[0, 0, 0, 5], [0, 0, 5, 5], [0, 0, 5, 0],
+            [0, -60, 10, 5], [0, 60, 15, 5], [0, 0, 15, 0]],
+            # servo6 Leg right top:
+            [[0, 130, 0, 5], [0, -130, 5, 5], [0, 0, 5, 0],
+            [0, 0, 10, 5], [0, 0, 15, 5], [0, 0, 15, 0]],
+            # servo7 Leg left top:
+            [[0, 0, 0, 5], [0, 0, 5, 5], [0, 0, 5, 0],
+            [ 0, -130, 10, 5], [0, 130, 15, 5], [0, 0, 15, 0]],
+            # servo8 Hip right:
+            [[0, 22, 0, 2], [0, -22, 5, 5], [0, 0, 5, 0],
+            [0, -22, 10, 2], [0, 22, 15, 5], [0, 0, 15, 0]],
+            # servo9 Hip left:
+            [[0, 22, 0, 2], [0, -22, 5, 5], [0, 0, 5, 0],
+            [0, -22, 10, 2], [0, 22, 15, 5], [0, 0, 15, 0]]
+    ]
+
+
+
+    servoMin = 150  # Min pulse length out of 4096
+    servoMax = 600  # Max pulse length out of 4096
+    
+    def servomov_ticks(matrix):
         x = 0
         y = 0
         max = 0
@@ -132,9 +131,13 @@ class motion:
             x += 1 
         return max
     
+        
+    ticks1 = servomov_ticks(servomov1)
+    ticks2 = servomov_ticks(servomov2)
+    
     def servo_update_slider(self, channel, curpos, newpos):
         if curpos != newpos:
-            mes = "002" + servoset[channel][0] + "%d" % (newpos)
+            mes = "002" + motion.servoset[channel][0] + "%d" % (newpos)
             send_to_all_clients(mes)
 
     def servo_reset_sliders(self):
@@ -142,15 +145,15 @@ class motion:
 
     def servo_set(self, channel, pos, incr):
         pwm.setPWMFreq(60)
-        curpos = servoset[channel][2] - servoset[channel][1]
+        curpos = motion.servoset[channel][2] - motion.servoset[channel][1]
         if incr == 1:
-            servoset[channel][2] = servoset[channel][2] + pos
+            motion.servoset[channel][2] = motion.servoset[channel][2] + pos
         else:
-            servoset[channel][2] = servoset[channel][1] + pos
-        newpos = servoset[channel][2] - servoset[channel][1]
-        pwm.setPWM(channel, 0, int(servoset[channel][2]))
+            motion.servoset[channel][2] = motion.servoset[channel][1] + pos
+        newpos = motion.servoset[channel][2] - motion.servoset[channel][1]
+        pwm.setPWM(channel, 0, int(motion.servoset[channel][2]))
         self.servo_update_slider(channel, curpos, newpos)
-        print "Servo: %d - Position %d" % (channel, servoset[channel][2])
+        print "Servo: %d - Position %d" % (channel, motion.servoset[channel][2])
 
     def g_left_right(self, pos, incr):
         self.servo_set(9, -pos, incr)
@@ -162,11 +165,11 @@ class motion:
 # make loop with time range arrays to tell servos when to hit
     def servo_walk(self, speed, patern):
         if patern == 1:
-            array = servomov1
-            tick = ticks1
+            array = motion.servomov1
+            tick = motion.ticks1
         if patern == 2: 
-            array = servomov2
-            tick = ticks2
+            array = motion.servomov2
+            tick = motion.ticks2
         z = 0
         while z < 2:
             x = 0
@@ -185,13 +188,13 @@ class motion:
             z += 1
     def servo_slider(self, position, patern):
         if patern == 1:
-            array = servomov1
-            tick = ticks1
+            array = motion.servomov1
+            tick = motion.ticks1
         if patern == 2: 
-            array = servomov2
-            tick = ticks2
-        walkpos = position
-        x = 0
+            array = motion.servomov2
+            tick = motion.ticks2
+        # walkpos = position
+        x = motion.walkpos
         while x < position:
             y = 0
             while y < len(array):
@@ -204,26 +207,27 @@ class motion:
                 y += 1
             # time.sleep(0.1)
             x += 1
+            motion.walkpos = x
     def servo_reset(self):
 #        pwm.setPWMFreq(60)                       # Set frequency to 60 Hz
         walkpos = 0
         y = 0
         resolution = 20.0
         devider = []
-        while y < len(servoset):
-            devider.append((servoset[y][2] - servoset[y][1]) / resolution)
+        while y < len(motion.servoset):
+            devider.append((motion.servoset[y][2] - motion.servoset[y][1]) / resolution)
             print "Loop trough %d" % devider[y]
             y += 1
         x = 0
         while x < resolution:
             y = 0
-            while y < len(servoset):
+            while y < len(motion.servoset):
                 self.servo_set(y, -devider[y], 1)
                 y = y + 1
             time.sleep(0.02)
             x += 1
         x = 0
-        while x < len(servoset):
+        while x < len(motion.servoset):
             self.servo_set(x, 0, 0)
             print "Loop trough %d" % x
             x += 1
@@ -232,8 +236,6 @@ class motion:
 
 
 m = motion()
-ticks1 = m.servomov_ticks(servomov1)
-ticks2 = m.servomov_ticks(servomov2)
 
 from tornado.options import define, options
 define("port", default=8090, help="run on the given port", type=int)
