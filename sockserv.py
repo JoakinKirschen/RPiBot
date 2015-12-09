@@ -186,28 +186,34 @@ class motion:
                 time.sleep(0.1)
                 x += 1
             z += 1
-    def servo_slider(self, position, patern):
+    def servo_slider(self, nextpos, patern):
         if patern == 1:
             array = motion.servomov1
             tick = motion.ticks1
         if patern == 2: 
             array = motion.servomov2
             tick = motion.ticks2
-        # walkpos = position
-        x = motion.walkpos
-        while x < position:
-            y = 0
-            while y < len(array):
+        if motion.walkpos < nextpos:
+            a = 1
+            b = motion.walkpos
+            c = nextpos
+        elif motion.walkpos > nextpos:
+            a = -1
+            b = nextpos
+            c = motion.walkpos
+        while b < c:
+            d = 0
+            while d < len(array):
                 seq = 0
-                while seq < len(array[y]):
-                    if array[y][seq][2] <= x < array[y][seq][3] + array[y][seq][2]:
-                        pos = array[y][seq][1] / array[y][seq][3]
-                        self.servo_set(y, pos, 1)
+                while seq < len(array[d]):
+                    if array[d][seq][2] <= b < array[d][seq][3] + array[d][seq][2]:
+                        pos = (array[d][seq][1] / array[d][seq][3]) * a
+                        self.servo_set(d, pos, 1)
                     seq += 1
-                y += 1
+                d += 1
             # time.sleep(0.1)
-            x += 1
-            motion.walkpos = x
+            b += 1
+            motion.walkpos = nextpos
     def servo_reset(self):
 #        pwm.setPWMFreq(60)                       # Set frequency to 60 Hz
         walkpos = 0
