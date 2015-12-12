@@ -124,7 +124,7 @@ class motion:
         y = 0
         max = 0
         while x < len(matrix):
-            while y < len(matrix[x][y]):
+            while y < len(matrix[x]):
                 if max < (matrix[x][y][2] + matrix[x][y][3]):
                     max = (matrix[x][y][2] + matrix[x][y][3])
                 y += 1
@@ -142,6 +142,7 @@ class motion:
 
     def servo_reset_sliders(self):
         send_to_all_clients("002" + "servo20" + "0")
+        motion.walkpos = 0
 
     def servo_set(self, channel, pos, incr):
         pwm.setPWMFreq(60)
@@ -187,12 +188,18 @@ class motion:
                 x += 1
             z += 1
     def servo_slider(self, nextpos, patern):
+        b = 0
+        c = 0
         if patern == 1:
             array = motion.servomov1
             tick = motion.ticks1
         if patern == 2: 
             array = motion.servomov2
             tick = motion.ticks2
+        if nextpos == 0 and motion.walkpos == 20:
+            motion.walkpos = 0
+        if nextpos == 20 and motion.walkpos == 0:
+            motion.walkpos = 20
         if motion.walkpos < nextpos:
             a = 1
             b = motion.walkpos
@@ -201,6 +208,9 @@ class motion:
             a = -1
             b = nextpos
             c = motion.walkpos
+        print nextpos
+        print motion.walkpos
+            
         while b < c:
             d = 0
             while d < len(array):

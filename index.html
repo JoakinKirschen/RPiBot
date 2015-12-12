@@ -69,6 +69,8 @@
         });
         $('#reset').click(function() {
             sendmsg("030","0");
+            $("#sliderA").roundSlider('setValue', 20);
+            //$("#sliderA").roundSlider("disable");
         });
         $("#command").keyup(function(){
             sVal = $(this).val();
@@ -78,7 +80,12 @@
         });
         $("#sliderA").roundSlider({
             max: 20,
+            value: 0,
             drag: function (e) {
+            console.log(e.value);
+            sendmsg("040", e.value)
+            },
+            change: function (e) {
             console.log(e.value);
             sendmsg("040", e.value)
             }
