@@ -8,12 +8,72 @@ import RPi.GPIO as GPIO
 from Adafruit_PWM_Servo_Driver import PWM
 import time
 import math
+import sqlite3
 
 
 # Initialise the PWM device using the default address
 pwm = PWM(0x42)
 
 
+class database(object):
+    # Create a database in RAM
+    db = sqlite3.connect(':memory:')
+    # Creates or opens a file called mydb with a SQLite3 DB
+    db = sqlite3.connect('data/mydb')
+    
+    def __init__(self, db_file="data/data.db"):
+        database_already_exists = os.path.exists(db_file)   
+        self.db = sqlite3.connect(db_file)
+        if not database_already_exists:
+            self.setupDefaultData()
+    
+    def setupDefaultData(self):
+       """ create the database tables and default values if it doesn't exist already """
+       cursor = db.cursor()
+       CREATE TABLE IF NOT EXISTS movement
+       (
+            id         INTEGER     PRIMARY KEY     AUTOINCREMENT,
+            name    TEXT,
+            value      TEXT
+       ) ;
+
+
+
+    # Get a cursor object
+    cursor = db.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY, name TEXT,
+                           phone TEXT, email TEXT unique, password TEXT)
+    ''')
+    db.commit()
+    cursor.close()
+
+
+    cursor = db.cursor()
+    name1 = 'Andres'
+    phone1 = '3366858'
+    email1 = 'user@example.com'
+    # A very secure password
+    password1 = '12345'
+     
+    name2 = 'John'
+    phone2 = '5557241'
+    email2 = 'johndoe@example.com'
+    password2 = 'abcdef'
+     
+    # Insert user 1
+    cursor.execute('''INSERT INTO users(name, phone, email, password)
+                      VALUES(?,?,?,?)''', (name1,phone1, email1, password1))
+    print('First user inserted')
+     
+    # Insert user 2
+    cursor.execute('''INSERT INTO users(name, phone, email, password)
+                      VALUES(?,?,?,?)''', (name2,phone2, email2, password2))
+    print('Second user inserted')
+     
+    db.commit()
+
+    db.close()
 # ===========================================================================
 # Example Code
 # ===========================================================================
