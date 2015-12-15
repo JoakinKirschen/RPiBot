@@ -67,10 +67,33 @@
             console.log("receiving: " + sVal + sName);
 
         });
-        $('#reset').click(function() {
+        $('#rst_btn').click(function() {
             sendmsg("030","0");
             $("#sliderA").roundSlider('setValue', 20);
             //$("#sliderA").roundSlider("disable");
+        });
+        $('#save_movement').click(function() {
+            sendmsg("050","0");
+        });
+        $('#delete_movement').click(function() {
+            sendmsg("051","0");
+        });
+        $('#svp_btn').click(function() {
+
+            var text = "";
+            var i = 0;
+            while (i < 10) {
+                text = $("#slider".concat(i)).val();
+                console.log("receiving: " + text);
+                i++;
+            }
+  //          while (x < 15);
+    //        {
+                //test = $("#slider".concat(x)).val();
+      //          x++;
+       //         console.log("receiving: " + test);
+        //    }
+            sendmsg("052","0");
         });
         $("#command").keyup(function(){
             sVal = $(this).val();
@@ -102,7 +125,29 @@
   <body>
     <div id="body">
     <div id="reset">
-    <input type="reset" value="Reset Button" />
+    <input class="floating-box" type="button" id="rst_btn" value="Reset Button" />
+    </div>
+    <div class="floating-box" id="sliderA">
+    </div>
+    <div id="mov_container">
+        
+        <label for="mov_newname">New movement name:</label>
+        <input label="text" required type="text" id="mov_newname" title="<host>:<port>, default address is autodetected"/><br>
+        
+    <form>
+        <label for="select-native-1">Movement options:</label>
+            <select name="select-native-1" id="select-native-1">
+                <option value="1">The 1st Option</option>
+                <option value="2">The 2nd Option</option>
+                <option value="3">The 3rd Option</option>
+                <option value="4">The 4th Option</option>
+            </select>
+    </form>
+    </div>
+    <div id="mov_container">
+        <input class="floating-box" type="button" id="svm_btn" value="Save Movement" />
+        <input class="floating-box" type="button" id="delm_btn" value="Delete Movement" />
+        <input class="floating-box" type="button" id="svp_btn" value="Save Position" />
     </div>
     <div id="header" class="cf"></div>
     <div id="main" class="cf">
@@ -169,8 +214,6 @@
 <!--    <a target="_top" href="/">home</a>&nbsp;<a href="/panel" target="_blank" title="change the image settings on-the-fly">control panel</a>-->
         </div>
         <div id="content-2-2">
-            
-                    <div id="sliderA"></div>
                     <p>
                     <label for="slider8">8 Hip right:</label>
                     <input type="range" name="slider" id="slider8" value="0" min="-100" max="100"  />
