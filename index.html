@@ -59,9 +59,14 @@
     <script type="text/javascript">
     //<![CDATA[
         $(window).load(function(){
+        $('#adjust_steps').keyup(function () {
+            if (this.value != this.value.replace(/[^0-9\.]/g, '')) {
+               this.value = this.value.replace(/[^0-9\.]/g, '');
+            }
+            });
         $("#slider0, #slider1, #slider2, #slider3, #slider4, #slider5, #slider6, #slider7, #slider8, #slider9, #slider20, #slider15").change(function() {
             sVal = $(this).val();
-            sName = $(this).attr("id").substring(6);
+            var sName = $(this).attr("id").substring(6);
             var pref = "000".substring(sName.length).concat(sName);
             sendmsg(pref, sVal);
             console.log("receiving: " + sVal + sName);
@@ -79,21 +84,16 @@
             sendmsg("051","0");
         });
         $('#svp_btn').click(function() {
-
             var text = "";
+            var suf = "";
             var i = 0;
             while (i < 10) {
                 text = $("#slider".concat(i)).val();
-                console.log("receiving: " + text);
+                suf = suf.concat("000".substring(text.length).concat(text));
                 i++;
             }
-  //          while (x < 15);
-    //        {
-                //test = $("#slider".concat(x)).val();
-      //          x++;
-       //         console.log("receiving: " + test);
-        //    }
-            sendmsg("052","0");
+            console.log("receiving: " + suf);
+            sendmsg("052",suf);
         });
         $("#command").keyup(function(){
             sVal = $(this).val();
@@ -130,10 +130,14 @@
     <div class="floating-box" id="sliderA">
     </div>
     <div id="mov_container">
-        
+        <div id="mov_container">
         <label for="mov_newname">New movement name:</label>
         <input label="text" required type="text" id="mov_newname" title="<host>:<port>, default address is autodetected"/><br>
-        
+        </div>
+        <div id="mov_container">
+        <label for="mov_newname">#Steps:</label>
+        <input type="text" class="numbersOnly" id="adjust_steps" value="" />
+        </div>
     <form>
         <label for="select-native-1">Movement options:</label>
             <select name="select-native-1" id="select-native-1">
