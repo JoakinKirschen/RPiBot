@@ -13,11 +13,25 @@ body {
 .floating-box {
     vertical-align: top;
     display: inline-block;
-    width: 150px;
-    margin: 10px;
+    margin:10px;
+    margin-right:10px;
+    vertical-align: top;
+
+}
+#small-button { 
+    width: 145px;
+    display: inline-block;
+    vertical-align: bottom;
+    padding: 0px;
+    margin:0px;
+    }
+#btn_container {
+    vertical-align: top;
+    display: inline-block;
+    width: 300px;
 }
 #mov_container {
-    vertical-align: bottom;
+    vertical-align: top;
     display: inline-block;
     width: 300px;
     margin: 10px;  
