@@ -76,7 +76,7 @@ class MovDatabase(object):
         print('New movement created')
         db.commit()
         
-     def deleteMovQuery(self,id): #must remove coresponding steptable
+    def deleteMovQuery(self,id): #must remove coresponding steptable
         cursor = db.cursor()
         # Insert user 1
         cursor.execute('''DELETE FROM users WHERE ID = 7 (name, phone, email, password)
