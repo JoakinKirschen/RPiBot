@@ -15,7 +15,7 @@ import sqlite3
 pwm = PWM(0x42)
 
 
-class database(object):
+class MovDatabase(object):
     # Create a database in RAM
     db = sqlite3.connect(':memory:')
     # Creates or opens a file called mydb with a SQLite3 DB
@@ -34,22 +34,87 @@ class database(object):
         CREATE TABLE IF NOT EXISTS movement
         (
             id         INTEGER     PRIMARY KEY     AUTOINCREMENT,
-            name    TEXT,
-            value      TEXT
+            name   TEXT,
+        )
+        CREATE TABLE IF NOT EXISTS steps
+        (
+            id         INTEGER     PRIMARY KEY     AUTOINCREMENT,
+			movid  INTEGER,
+            s1        INTEGER,
+			s2        INTEGER,
+			s3        INTEGER,
+            s4        INTEGER,
+			s5        INTEGER,
+			s6        INTEGER,
+            s7        INTEGER,
+			s8        INTEGER,
+			s9        INTEGER,
+            s10        INTEGER,			
+            s11       INTEGER,
+			s12        INTEGER,
+			13        INTEGER,
+            s14        INTEGER,
+			s15        INTEGER,
+			s16        INTEGER,
+            s17        INTEGER,
+			s18        INTEGER,
+			s19        INTEGER,
+			FOREIGN KEY(movid) REFERENCES movement(id)
         )
         ''')
         db.commit()
         cursor.close()
     
-    def newMovementQuery(self,movementname):
+    def newMovQuery(self,movname): #this also creates a new steptable
+        cursor = db.cursor()
+        cursor.execute('''
+		INSERT INTO movement(name) VALUES (movname))
+		''')
+		
+		
+		
+        print('New movement created')
+        db.commit()
+		
+	 def deleteMovQuery(self,id): #must remove coresponding steptable
+        cursor = db.cursor()
+        # Insert user 1
+        cursor.execute('''DELETE FROM users WHERE ID = 7 (name, phone, email, password)
+                      VALUES(?,?,?,?)''', (name1,phone1, email1, password1))
+        print('Movement query removed')
+        db.commit()
+		
+	def editMovQuery(self,movname): #steptable remains unchanged
+        cursor = db.cursor()
+        # Insert user 1
+        cursor.execute('''INSERT INTO users(name, phone, email, password)
+                      VALUES(?,?,?,?)''', (name1,phone1, email1, password1))
+        print('Movement query edited')
+        db.commit()
+	def addStepQuery(self,movname,pos):
         cursor = db.cursor()
         # Insert user 1
         cursor.execute('''INSERT INTO users(name, phone, email, password)
                       VALUES(?,?,?,?)''', (name1,phone1, email1, password1))
         print('New movement created')
+        db.commit()				
+	def deleteStepQuery(self,movname,pos):
+        cursor = db.cursor()
+        # Insert user 1
+        cursor.execute('''INSERT INTO users(name, phone, email, password)
+                      VALUES(?,?,?,?)''', (name1,phone1, email1, password1))
+        print('Step query removed')
         db.commit()
 
-    def closedb(self,movementname):
+	def editStepQuery(self,movname,pos):
+        cursor = db.cursor()
+        # Insert user 1
+        cursor.execute('''INSERT INTO users(name, phone, email, password)
+                      VALUES(?,?,?,?)''', (name1,phone1, email1, password1))
+        print('Step query edited')
+        db.commit()		
+
+    def closedb(self):
         db.close()
 # ===========================================================================
 # Example Code
@@ -336,6 +401,10 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         if channel == 40:  # walk possition slider
             self.write_message("walking")
             m.servo_slider(pos,1)
+            print "step: %d position: %d" % (channel, pos)
+		 if channel == 50:  # walk possition slider
+            self.write_message("saving current positions")
+            #m.servo_slider(pos)
             print "step: %d position: %d" % (channel, pos)
 
     def on_close(self):
