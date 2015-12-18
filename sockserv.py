@@ -402,7 +402,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             self.write_message("walking")
             m.servo_slider(pos,1)
             print "step: %d position: %d" % (channel, pos)
-         if channel == 50:  # walk possition slider
+        if channel == 50:  # walk possition slider
             self.write_message("saving current positions")
             #m.servo_slider(pos)
             print "step: %d position: %d" % (channel, pos)
