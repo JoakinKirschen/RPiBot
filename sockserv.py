@@ -33,26 +33,27 @@ class MovDatabase(object):
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS movement
         (
-            id         INTEGER     PRIMARY KEY     AUTOINCREMENT,
-            name   TEXT,
+            ID         INTEGER     PRIMARY KEY     AUTOINCREMENT,
+            NAME   TEXT,
         )
         CREATE TABLE IF NOT EXISTS steps
         (
-            id         INTEGER     PRIMARY KEY     AUTOINCREMENT,
-            movid  INTEGER,
-            s1        INTEGER,
-            s2        INTEGER,
-            s3        INTEGER,
-            s4        INTEGER,
-            s5        INTEGER,
-            s6        INTEGER,
-            s7        INTEGER,
-            s8        INTEGER,
-            s9        INTEGER,
+            ID         INTEGER     PRIMARY KEY     AUTOINCREMENT,
+            MOVID      INTEGER,
+            STEPPOS    INTEGER
+            s1         INTEGER,
+            s2         INTEGER,
+            s3         INTEGER,
+            s4         INTEGER,
+            s5         INTEGER,
+            s6         INTEGER,
+            s7         INTEGER,
+            s8         INTEGER,
+            s9         INTEGER,
             s10        INTEGER,            
-            s11       INTEGER,
+            s11        INTEGER,
             s12        INTEGER,
-            13        INTEGER,
+            13         INTEGER,
             s14        INTEGER,
             s15        INTEGER,
             s16        INTEGER,
@@ -67,42 +68,42 @@ class MovDatabase(object):
     
     def newMovQuery(self,movname): #this also creates a new steptable
         cursor = db.cursor()
-        cursor.execute('''
-        INSERT INTO movement(name) VALUES (movname))
-        ''')
+        cursor.execute('''INSERT INTO movement(NAME) VALUES (?)''', (movname))
         
         
         
         print('New movement created')
         db.commit()
         
-    def deleteMovQuery(self,id): #must remove coresponding steptable
+    def deleteMovQuery(self,movid): #must remove coresponding steptable
         cursor = db.cursor()
         # Insert user 1
-        cursor.execute('''DELETE FROM users WHERE ID = 7 (name, phone, email, password)
-                      VALUES(?,?,?,?)''', (name1,phone1, email1, password1))
+        cursor.execute('''DELETE FROM movement WHERE ID = ? ''', (movid)) )
+        cursor.execute('''DELETE FROM steps WHERE MOVID = ? ''', (movid)) )
         print('Movement query removed')
         db.commit()
         
-    def editMovQuery(self,movname): #steptable remains unchanged
+    def editMovQuery(self,movid,newname): #steptable remains unchanged
         cursor = db.cursor()
         # Insert user 1
-        cursor.execute('''INSERT INTO users(name, phone, email, password)
-                      VALUES(?,?,?,?)''', (name1,phone1, email1, password1))
+        cursor.execute('''UPDATE movement SET NAME=? WHERE ID=? ''', (newname, movid))
         print('Movement query edited')
         db.commit()
     def addStepQuery(self,movname,pos):
         cursor = db.cursor()
         # Insert user 1
-        cursor.execute('''INSERT INTO users(name, phone, email, password)
-                      VALUES(?,?,?,?)''', (name1,phone1, email1, password1))
+        cursor.execute('''SELECT * FROM movement ORDER BY STEPPOS ASC''')
+        cursor.execute('''INSERT INTO steps (name, phone, email, password)VALUES(?,?,?,?)''', (name1,phone1, email1, password1))
+        
         print('New movement created')
         db.commit()                
     def deleteStepQuery(self,movname,pos):
         cursor = db.cursor()
         # Insert user 1
-        cursor.execute('''INSERT INTO users(name, phone, email, password)
-                      VALUES(?,?,?,?)''', (name1,phone1, email1, password1))
+        cursor.execute('''
+        FR0M INTO steps (name, phone, email, password)VALUES(?,?,?,?)''', (name1,phone1, email1, password1)
+        
+        )
         print('Step query removed')
         db.commit()
 
