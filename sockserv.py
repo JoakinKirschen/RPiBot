@@ -78,8 +78,8 @@ class MovDatabase(object):
     def deleteMovQuery(self,movid): #must remove coresponding steptable
         cursor = db.cursor()
         # Insert user 1
-        cursor.execute('''DELETE FROM movement WHERE ID = ? ''', (movid)) )
-        cursor.execute('''DELETE FROM steps WHERE MOVID = ? ''', (movid)) )
+        cursor.execute('''DELETE FROM movement WHERE ID = ? ''', (movid))
+        cursor.execute('''DELETE FROM steps WHERE MOVID = ? ''', (movid))
         print('Movement query removed')
         db.commit()
         
@@ -382,13 +382,13 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         print 'message received %s' % message
         self.write_message(message)
         channel = int(message[0:3])
-        pos = int(message[3:])
+        command = (message[3:])
         if channel < 16:
-            m.servo_set(channel, pos, 0)
-            print "channel: %d angle: %d" % (channel, pos)
+            m.servo_set(channel, int(command), 0)
+            print "channel: %d angle: %d" % (channel, int(command))
         if channel == 20:
-            m.g_left_right(pos, 0)
-            print "channel: %d angle: %d" % (channel, pos)
+            m.g_left_right( int(command), 0)
+            print "channel: %d angle: %d" % (channel, int(command))
         if channel == 30:
             self.write_message("reset")
             m.servo_reset()
@@ -402,11 +402,27 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         if channel == 40:  # walk possition slider
             self.write_message("walking")
             m.servo_slider(pos,1)
-            print "step: %d position: %d" % (channel, pos)
+            print "step: %d position: %d" % (channel, int(command))
         if channel == 50:  # walk possition slider
             self.write_message("saving current positions")
             #m.servo_slider(pos)
-            print "step: %d position: %d" % (channel, pos)
+            print "step: %d position: %d" % (channel, int(command))
+        if channel == 51:  # walk possition slider
+            self.write_message("Insert new step behind current posistion")
+            #m.servo_slider(pos)
+            print "step: %d position: %d" % (channel, int(command))
+        if channel == 52:  # Delete current step
+            self.write_message("Delete current step")
+            #m.servo_slider(pos)
+            print "step: %d position: %d" % (channel, int(command))
+        if channel == 53:  # Add a new motion
+            self.write_message("Add a new motion")
+            #m.servo_slider(pos)
+            print "step: %d position: %d" % (channel, command)
+        if channel == 54:  # Delete current motion
+            self.write_message("Delete current motion")
+            #m.servo_slider(pos)
+            print "step: %d position: %d" % (channel, int(command))
 
     def on_close(self):
         clients.remove(self)

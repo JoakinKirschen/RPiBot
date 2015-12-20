@@ -61,7 +61,7 @@
         $(window).load(function(){
  
         $("#slider0, #slider1, #slider2, #slider3, #slider4, #slider5, #slider6, #slider7, #slider8, #slider9, #slider20, #slider15").change(function() {
-            sVal = $(this).val();
+            var sVal = $(this).val();
             var sName = $(this).attr("id").substring(6);
             var pref = "000".substring(sName.length).concat(sName);
             sendmsg(pref, sVal);
@@ -93,15 +93,18 @@
             sendmsg("052","0");
         });
         // Create movement system
-        $('#svm_btn').click(function() {
-            sendmsg("053","0");
+        $('#addm_btn').click(function() {
+            sVal = $("#mov_newname").val();
+         //   if (sval !== ""){
+                sendmsg("053",sVal);
+        //}
         });
         $('#delm_btn').click(function() {
             sendmsg("054","0");
         });
 
         $("#command").keyup(function(){
-            sVal = $(this).val();
+            var sVal = $(this).val();
             if (sVal == "reset"){sendmsg("030","0")};
             if (sVal == "walk"){sendmsg("031","0")};
             if (sVal == "w2"){sendmsg("032","0")};
@@ -158,7 +161,7 @@
     <div id="mov_container">
          <label for="mov_newname">New movement name:</label>
         <input label="text" required type="text" id="mov_newname" title="<host>:<port>, default address is autodetected"/>
-        <input class="floating-box" type="button" id="svm_btn" value="Save Movement" />
+        <input class="floating-box" type="button" id="addm_btn" value="Save Movement" />
         <input class="floating-box" type="button" id="delm_btn" value="Delete Movement" />
     </div>
     <div id="header" class="cf"></div>
