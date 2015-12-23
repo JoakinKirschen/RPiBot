@@ -95,9 +95,9 @@
         // Create movement system
         $('#addm_btn').click(function() {
             sVal = $("#mov_newname").val();
-         //   if (sval !== ""){
+            if (sVal != ""){
                 sendmsg("053",sVal);
-        //}
+        }
         });
         $('#delm_btn').click(function() {
             sendmsg("054","0");

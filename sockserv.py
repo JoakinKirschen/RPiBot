@@ -9,6 +9,7 @@ from Adafruit_PWM_Servo_Driver import PWM
 import time
 import math
 import sqlite3
+import os
 
 
 # Initialise the PWM device using the default address
@@ -17,9 +18,9 @@ pwm = PWM(0x42)
 
 class MovDatabase(object):
     # Create a database in RAM
-    db = sqlite3.connect(':memory:')
+    # db = sqlite3.connect(':memory:')
     # Creates or opens a file called mydb with a SQLite3 DB
-    db = sqlite3.connect('data/mydb')
+    # db = sqlite3.connect('data/mydb')
     
     def __init__(self, db_file="data/data.db"):
         database_already_exists = os.path.exists(db_file)   
@@ -29,13 +30,14 @@ class MovDatabase(object):
     
     def setupDefaultData(self):
         """ create the database tables and default values if it doesn't exist already """
-        cursor = db.cursor()
+        cursor = self.db.cursor()
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS movement
         (
             ID         INTEGER     PRIMARY KEY     AUTOINCREMENT,
             NAME   TEXT,
-        )
+        )''')
+        cursor.execute('''
         CREATE TABLE IF NOT EXISTS steps
         (
             ID         INTEGER     PRIMARY KEY     AUTOINCREMENT,
@@ -63,15 +65,15 @@ class MovDatabase(object):
             FOREIGN KEY(movid) REFERENCES movement(id)
         )
         ''')
-        db.commit()
+        self.db.commit()
         cursor.close()
     
     def newMovQuery(self,movname): #this also creates a new steptable
-        cursor = db.cursor()
-        cursor.execute('''INSERT INTO movement(NAME) VALUES (?)''', (movname))
-        
-        
-        
+        cursor = self.db.cursor()
+        cursor.execute('''INSERT INTO movement (NAME) VALUES (?)''', (movname))
+        cursor.execute('''SELECT ID, NAME  WHERE NAME=?''', (movname))
+        data = cursor.fetchone()
+        print(data)
         print('New movement created')
         db.commit()
         
@@ -355,6 +357,7 @@ class motion:
 
 
 m = motion()
+db = MovDatabase()
 
 from tornado.options import define, options
 define("port", default=8090, help="run on the given port", type=int)
@@ -416,9 +419,10 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             #m.servo_slider(pos)
             print "step: %d position: %d" % (channel, int(command))
         if channel == 53:  # Add a new motion
+            db.newMovQuery(command)
             self.write_message("Add a new motion")
             #m.servo_slider(pos)
-            print "step: %d position: %d" % (channel, command)
+            print "step: %d position: %s" % (channel, command)
         if channel == 54:  # Delete current motion
             self.write_message("Delete current motion")
             #m.servo_slider(pos)
