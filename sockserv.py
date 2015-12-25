@@ -34,15 +34,15 @@ class MovDatabase(object):
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS movement
         (
-            ID         INTEGER     PRIMARY KEY     AUTOINCREMENT,
-            NAME   TEXT,
+            id         INTEGER     PRIMARY KEY     AUTOINCREMENT,
+            name   TEXT,
         )''')
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS steps
         (
-            ID         INTEGER     PRIMARY KEY     AUTOINCREMENT,
-            MOVID      INTEGER,
-            STEPPOS    INTEGER
+            id         INTEGER     PRIMARY KEY     AUTOINCREMENT,
+            movid      INTEGER,
+            steppos    INTEGER
             s1         INTEGER,
             s2         INTEGER,
             s3         INTEGER,
@@ -52,7 +52,7 @@ class MovDatabase(object):
             s7         INTEGER,
             s8         INTEGER,
             s9         INTEGER,
-            s10        INTEGER,            
+            s10        INTEGER,
             s11        INTEGER,
             s12        INTEGER,
             13         INTEGER,
@@ -65,14 +65,35 @@ class MovDatabase(object):
             FOREIGN KEY(movid) REFERENCES movement(id)
         )
         ''')
+        cursor.execute('''SELECT * FROM movement ORDER BY id ASC''')
+        data = cursor.fetchall()
+        
+        for row in data:
+            id = str(row[0])
+            while len(id) != 3:
+                id = "0" + id
+            name = row[1]
+            send_to_all_clients("003%s%s" % (id, name))
         self.db.commit()
         cursor.close()
     
     def newMovQuery(self,movname): #this also creates a new steptable
         cursor = self.db.cursor()
-        cursor.execute('''INSERT INTO movement (NAME) VALUES (?)''', (movname))
-        cursor.execute('''SELECT ID, NAME  WHERE NAME=?''', (movname))
-        data = cursor.fetchone()
+        cursor.execute('''INSERT INTO movement (name) VALUES (?)''', (movname))
+        #cursor.execute('''SELECT id, name  WHERE name=?''', (movname))
+        cursor.execute('''SELECT * FROM movement ORDER BY id ASC''')
+        #data = cursor.fetchone()
+        data = cursor.fetchall()
+        for row in data:
+        # Remove movement from list
+            send_to_all_clients("004%s%s" % (id, name))
+        for row in data:
+            id = str(row[0])
+            while len(id) != 3:
+                id = "0%s" % (id)
+            name = row[1]
+            send_to_all_clients("003%s%s" % (id, name))
+        
         print(data)
         print('New movement created')
         db.commit()
@@ -80,21 +101,29 @@ class MovDatabase(object):
     def deleteMovQuery(self,movid): #must remove coresponding steptable
         cursor = db.cursor()
         # Insert user 1
-        cursor.execute('''DELETE FROM movement WHERE ID = ? ''', (movid))
-        cursor.execute('''DELETE FROM steps WHERE MOVID = ? ''', (movid))
+        cursor.execute('''SELECT id, name  WHERE name=?''', (movname))
+        data = cursor.fetchone()
+        cursor.execute('''DELETE FROM movement WHERE id = ? ''', (movid))
+        cursor.execute('''DELETE FROM steps WHERE movid = ? ''', (movid))
+        id = data[0]
+        name = data[1]
+        while len(id) != 3:
+                id = "0%s" % (id)
+        # Remove movement from list
+        send_to_all_clients("004%s%s" % (id, name))
         print('Movement query removed')
         db.commit()
         
     def editMovQuery(self,movid,newname): #steptable remains unchanged
         cursor = db.cursor()
         # Insert user 1
-        cursor.execute('''UPDATE movement SET NAME=? WHERE ID=? ''', (newname, movid))
+        cursor.execute('''UPDATE movement SET name=? WHERE id=? ''', (newname, movid))
         print('Movement query edited')
         db.commit()
     def addStepQuery(self,movname,pos):
         cursor = db.cursor()
         # Insert user 1
-        cursor.execute('''SELECT * FROM movement ORDER BY STEPPOS ASC''')
+        cursor.execute('''SELECT * FROM movement ORDER BY steppos ASC''')
         cursor.execute('''INSERT INTO steps (name, phone, email, password)VALUES(?,?,?,?)''', (name1,phone1, email1, password1))
         
         print('New movement created')
@@ -218,9 +247,9 @@ class motion:
             [[0, 22, 0, 2], [0, -22, 5, 5], [0, 0, 5, 0],
             [0, -22, 10, 2], [0, 22, 15, 5], [0, 0, 15, 0]]
     ]
-
-
-
+    
+    
+    
     servoMin = 150  # Min pulse length out of 4096
     servoMax = 600  # Max pulse length out of 4096
     
@@ -236,7 +265,7 @@ class motion:
             x += 1 
         return max
     
-        
+    
     ticks1 = servomov_ticks(servomov1)
     ticks2 = servomov_ticks(servomov2)
     
@@ -244,11 +273,11 @@ class motion:
         if curpos != newpos:
             mes = "002" + motion.servoset[channel][0] + "%d" % (newpos)
             send_to_all_clients(mes)
-
+    
     def servo_reset_sliders(self):
         send_to_all_clients("002" + "servo20" + "0")
         motion.walkpos = 0
-
+    
     def servo_set(self, channel, pos, incr):
         pwm.setPWMFreq(60)
         curpos = motion.servoset[channel][2] - motion.servoset[channel][1]
@@ -260,13 +289,13 @@ class motion:
         pwm.setPWM(channel, 0, int(motion.servoset[channel][2]))
         self.servo_update_slider(channel, curpos, newpos)
         print "Servo: %d - Position %d" % (channel, motion.servoset[channel][2])
-
+    
     def g_left_right(self, pos, incr):
         self.servo_set(9, -pos, incr)
         self.servo_set(8, -pos, incr)
         self.servo_set(1, -pos, incr)
         self.servo_set(0, -pos, incr)
-
+    
 # startpos #endpos #startime #steps
 # make loop with time range arrays to tell servos when to hit
     def servo_walk(self, speed, patern):
