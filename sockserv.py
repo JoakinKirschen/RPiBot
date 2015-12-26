@@ -95,6 +95,7 @@ class MovDatabase(object):
         cursor.execute('''SELECT * FROM movement ORDER BY id ASC''')
         #data = cursor.fetchone()
         data = cursor.fetchall()
+        i = 0
         for row in data:
         # Remove movement from list
             id = str(row[0])
@@ -103,11 +104,16 @@ class MovDatabase(object):
             name = row[1]
             send_to_all_clients("004%s%s" % (id, name))
         for row in data:
+            i = i + 1
             id = str(row[0])
             while len(id) != 3:
                 id = "0%s" % (id)
             name = row[1]
             send_to_all_clients("003%s%s" % (id, name))
+            if len(data) == i:
+                send_to_all_clients("005%s%s" % (id, name))
+                print "OKIDOKIK"
+            
         
         print(data)
         print('New movement created')

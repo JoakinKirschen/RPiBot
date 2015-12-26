@@ -58,6 +58,17 @@
             var name = message.data.substring(3, 6) + " - " + message.data.substring(6);
             $("#select-native-1").find('option[value="' + name + '"]').remove();
         }
+        if (execcode == "005")//set movement to menuitem
+        {
+            var newname = message.data.substring(3, 6) + " - " + message.data.substring(6);
+            //Creates the item
+            var itemval= '<option value="' + newname + '">' + newname + '</option>';
+            //Appends it within your select element
+            console.log("pipi")
+            //$("#select-native-1").val(itemval);
+           // $("#select-native-1").value = newname;
+           // $('#select-native-1 option[value="015 - oiio"]').attr('selected', true);
+        }
       };
 
       socket.onclose = function(){
@@ -156,7 +167,7 @@
     <div id="mov_container">
     <form>
         <label for="select-native-1">Movement options:</label>
-            <select name="select-native-1" id="select-native-1">
+            <select name="select-native-1" id="select-native-1" >
 <!--                <option value="1">The 1st Option</option>
                 <option value="2">The 2nd Option</option>
                 <option value="3">The 3rd Option</option>
