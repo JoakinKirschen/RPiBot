@@ -35,14 +35,14 @@ class MovDatabase(object):
         CREATE TABLE IF NOT EXISTS movement
         (
             id         INTEGER     PRIMARY KEY     AUTOINCREMENT,
-            name   TEXT,
+            name   TEXT
         )''')
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS steps
         (
             id         INTEGER     PRIMARY KEY     AUTOINCREMENT,
             movid      INTEGER,
-            steppos    INTEGER
+            steppos    INTEGER,
             s1         INTEGER,
             s2         INTEGER,
             s3         INTEGER,
@@ -55,7 +55,7 @@ class MovDatabase(object):
             s10        INTEGER,
             s11        INTEGER,
             s12        INTEGER,
-            13         INTEGER,
+            s13        INTEGER,
             s14        INTEGER,
             s15        INTEGER,
             s16        INTEGER,
@@ -63,8 +63,7 @@ class MovDatabase(object):
             s18        INTEGER,
             s19        INTEGER,
             FOREIGN KEY(movid) REFERENCES movement(id)
-        )
-        ''')
+        )''')
         cursor.execute('''SELECT * FROM movement ORDER BY id ASC''')
         data = cursor.fetchall()
         
@@ -76,16 +75,32 @@ class MovDatabase(object):
             send_to_all_clients("003%s%s" % (id, name))
         self.db.commit()
         cursor.close()
-    
+        
+    def popMovQuery(self): #this also creates a new steptable
+        cursor = self.db.cursor()
+        cursor.execute('''SELECT * FROM movement ORDER BY id ASC''')
+        #data = cursor.fetchone()
+        data = cursor.fetchall()
+        for row in data:
+            id = str(row[0])
+            while len(id) != 3:
+                id = "0%s" % (id)
+            name = row[1]
+            send_to_all_clients("003%s%s" % (id, name))
+        
     def newMovQuery(self,movname): #this also creates a new steptable
         cursor = self.db.cursor()
-        cursor.execute('''INSERT INTO movement (name) VALUES (?)''', (movname))
+        cursor.execute('''INSERT INTO movement (name) VALUES (?)''', (movname,))
         #cursor.execute('''SELECT id, name  WHERE name=?''', (movname))
         cursor.execute('''SELECT * FROM movement ORDER BY id ASC''')
         #data = cursor.fetchone()
         data = cursor.fetchall()
         for row in data:
         # Remove movement from list
+            id = str(row[0])
+            while len(id) != 3:
+                id = "0" + id
+            name = row[1]
             send_to_all_clients("004%s%s" % (id, name))
         for row in data:
             id = str(row[0])
@@ -96,35 +111,35 @@ class MovDatabase(object):
         
         print(data)
         print('New movement created')
-        db.commit()
+        self.db.commit()
         
-    def deleteMovQuery(self,movid): #must remove coresponding steptable
-        cursor = db.cursor()
+    def delMovQuery(self,movid): #must remove coresponding steptable
+        cursor = self.db.cursor()
         # Insert user 1
-        cursor.execute('''SELECT id, name  WHERE name=?''', (movname))
+        cursor.execute('''SELECT id, name FROM movement WHERE id=?''', (movid,))
         data = cursor.fetchone()
-        cursor.execute('''DELETE FROM movement WHERE id = ? ''', (movid))
-        cursor.execute('''DELETE FROM steps WHERE movid = ? ''', (movid))
-        id = data[0]
+        cursor.execute('''DELETE FROM movement WHERE id = ? ''', (movid,))
+        cursor.execute('''DELETE FROM steps WHERE movid = ? ''', (movid,))
+        id = str(data[0])
         name = data[1]
         while len(id) != 3:
                 id = "0%s" % (id)
         # Remove movement from list
         send_to_all_clients("004%s%s" % (id, name))
         print('Movement query removed')
-        db.commit()
+        self.db.commit()
         
     def editMovQuery(self,movid,newname): #steptable remains unchanged
         cursor = db.cursor()
         # Insert user 1
-        cursor.execute('''UPDATE movement SET name=? WHERE id=? ''', (newname, movid))
+        cursor.execute('''UPDATE movement SET name=? WHERE id=? ''', (newname, movid,))
         print('Movement query edited')
         db.commit()
     def addStepQuery(self,movname,pos):
         cursor = db.cursor()
         # Insert user 1
         cursor.execute('''SELECT * FROM movement ORDER BY steppos ASC''')
-        cursor.execute('''INSERT INTO steps (name, phone, email, password)VALUES(?,?,?,?)''', (name1,phone1, email1, password1))
+        cursor.execute('''INSERT INTO steps (name, phone, email, password)VALUES(?,?,?,?)''', (name1,phone1, email1, password1,))
         
         print('New movement created')
         db.commit()                
@@ -453,7 +468,13 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             #m.servo_slider(pos)
             print "step: %d position: %s" % (channel, command)
         if channel == 54:  # Delete current motion
+            db.delMovQuery(int(command))
             self.write_message("Delete current motion")
+            #m.servo_slider(pos)
+            print "step: %d position: %d" % (channel, int(command))
+        if channel == 55:  # Populate movement list
+            db.popMovQuery()
+            self.write_message("Populating movmlist")
             #m.servo_slider(pos)
             print "step: %d position: %d" % (channel, int(command))
 

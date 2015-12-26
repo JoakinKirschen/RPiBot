@@ -47,18 +47,16 @@
         }
         if (execcode == "003")//add movement to menuitem
         {
-            var id = message.data.substring(3, 6);
+            var newname = message.data.substring(3, 6) + " - " + message.data.substring(6);
             //Creates the item
-            var name = message.data.substring(6);
-            //Creates the item
-            var itemval= '<option value="' newname '">' newname '</option>';
+            var itemval= '<option value="' + newname + '">' + newname + '</option>';
             //Appends it within your select element
             $("#select-native-1").append(itemval);
         }
-        if (execcode == "004")//add movement to menuitem
+        if (execcode == "004")//remove from movement menu
         {
-        dropdownElement = $("#dropdownElement");
-        $("#select-native-1").find('option[value=foo]').remove();
+            var name = message.data.substring(3, 6) + " - " + message.data.substring(6);
+            $("#select-native-1").find('option[value="' + name + '"]').remove();
         }
       };
 
@@ -74,7 +72,7 @@
     <script type="text/javascript">
     //<![CDATA[
         $(window).load(function(){
- 
+        sendmsg("055","0");  //populate movement list
         $("#slider0, #slider1, #slider2, #slider3, #slider4, #slider5, #slider6, #slider7, #slider8, #slider9, #slider20, #slider15").change(function() {
             var sVal = $(this).val();
             var sName = $(this).attr("id").substring(6);
@@ -109,15 +107,18 @@
         });
         // Create movement system
         $('#addm_btn').click(function() {
-            sVal = $("#mov_newname").val();
+            var sVal = $("#mov_newname").val();
             if (sVal != ""){
                 sendmsg("053",sVal);
         }
         });
         $('#delm_btn').click(function() {
-            sendmsg("054","0");
+            var sVal = $("#select-native-1").val();
+            sVal = sVal.substring(0, 3)
+            if (sVal != ""){
+                sendmsg("054",sVal);
+        }
         });
-
         $("#command").keyup(function(){
             var sVal = $(this).val();
             if (sVal == "reset"){sendmsg("030","0")};
@@ -156,10 +157,10 @@
     <form>
         <label for="select-native-1">Movement options:</label>
             <select name="select-native-1" id="select-native-1">
-                <option value="1">The 1st Option</option>
+<!--                <option value="1">The 1st Option</option>
                 <option value="2">The 2nd Option</option>
                 <option value="3">The 3rd Option</option>
-                <option value="4">The 4th Option</option>
+                <option value="4">The 4th Option</option> -->
             </select>
     </form>
         <input class="floating-box" type="button" id="svp_btn" value="Save Position" />
