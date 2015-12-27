@@ -64,10 +64,11 @@
             //Creates the item
             var itemval= '<option value="' + newname + '">' + newname + '</option>';
             //Appends it within your select element
-            console.log("pipi")
-            //$("#select-native-1").val(itemval);
+            console.log(newname);
+           // $("#select-native-1").val(itemval).selectmenu("refresh");
            // $("#select-native-1").value = newname;
-           // $('#select-native-1 option[value="015 - oiio"]').attr('selected', true);
+           $('#select-native-1 option[value="' + newname + '"]').attr('selected', true);
+           $('select').selectmenu('refresh');
         }
       };
 

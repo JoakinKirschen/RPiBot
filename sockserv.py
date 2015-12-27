@@ -76,7 +76,7 @@ class MovDatabase(object):
         self.db.commit()
         cursor.close()
         
-    def popMovQuery(self): #this also creates a new steptable
+    def popMovQuery(self): #initialize the movement menu
         cursor = self.db.cursor()
         cursor.execute('''SELECT * FROM movement ORDER BY id ASC''')
         #data = cursor.fetchone()
@@ -87,6 +87,11 @@ class MovDatabase(object):
                 id = "0%s" % (id)
             name = row[1]
             send_to_all_clients("003%s%s" % (id, name))
+        cursor.execute('''SELECT * FROM movement ORDER BY ROWID ASC LIMIT 1''')
+        data = cursor.fetchone()
+        if data:
+            send_to_all_clients("005%s%s" % (str(data[0]), data[1]))
+        
         
     def newMovQuery(self,movname): #this also creates a new steptable
         cursor = self.db.cursor()
@@ -121,19 +126,25 @@ class MovDatabase(object):
         
     def delMovQuery(self,movid): #must remove coresponding steptable
         cursor = self.db.cursor()
-        # Insert user 1
-        cursor.execute('''SELECT id, name FROM movement WHERE id=?''', (movid,))
-        data = cursor.fetchone()
-        cursor.execute('''DELETE FROM movement WHERE id = ? ''', (movid,))
-        cursor.execute('''DELETE FROM steps WHERE movid = ? ''', (movid,))
-        id = str(data[0])
-        name = data[1]
-        while len(id) != 3:
-                id = "0%s" % (id)
-        # Remove movement from list
-        send_to_all_clients("004%s%s" % (id, name))
-        print('Movement query removed')
-        self.db.commit()
+        cursor.execute('''SELECT * FROM movement ORDER BY id ASC''')
+        #data = cursor.fetchone()
+        data = cursor.fetchall()
+        if len(data) != 1:
+            cursor.execute('''SELECT id, name FROM movement WHERE id=?''', (movid,))
+            data = cursor.fetchone()
+            cursor.execute('''DELETE FROM movement WHERE id = ? ''', (movid,))
+            cursor.execute('''DELETE FROM steps WHERE movid = ? ''', (movid,))
+            id = str(data[0])
+            name = data[1]
+            while len(id) != 3:
+                    id = "0%s" % (id)
+            # Remove movement from list
+            send_to_all_clients("004%s%s" % (id, name))
+            print('Movement query removed')
+            self.db.commit()
+            cursor.execute('''SELECT * FROM movement ORDER BY ROWID ASC LIMIT 1''')
+            data = cursor.fetchone()
+            send_to_all_clients("005%s%s" % (str(data[0]), data[1]))
         
     def editMovQuery(self,movid,newname): #steptable remains unchanged
         cursor = db.cursor()
