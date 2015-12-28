@@ -112,9 +112,16 @@
             sendmsg("050",suf);
         });
         $('#addstp_btn').click(function() {
-            sendmsg("051","0");
+            var sVal1 = $("#select-native-1").val();
+            sVal1 = sVal1.substring(0, 3)
+            var sVal2 = $("#sliderA").roundSlider('getValue');
+            console.log(sVal2);
+            if (sVal1 != ""){
+                sendmsg("051",sVal1);
+        }
         });
         $('#delstp_btn').click(function() {
+            
             sendmsg("052","0");
         });
         // Create movement system

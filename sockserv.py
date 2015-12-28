@@ -96,6 +96,13 @@ class MovDatabase(object):
     def newMovQuery(self,movname): #this also creates a new steptable
         cursor = self.db.cursor()
         cursor.execute('''INSERT INTO movement (name) VALUES (?)''', (movname,))
+        cursor.execute('''SELECT id FROM movement WHERE name=?''', (movname,))
+        movid = cursor.fetchone()
+        cursor.execute
+        ('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13 ) VALUES (?)'''
+        , (movid, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,))
+        m.servo_reset()
+        m.servo_reset_sliders()
         #cursor.execute('''SELECT id, name  WHERE name=?''', (movname))
         cursor.execute('''SELECT * FROM movement ORDER BY id ASC''')
         #data = cursor.fetchone()
@@ -109,6 +116,7 @@ class MovDatabase(object):
             name = row[1]
             send_to_all_clients("004%s%s" % (id, name))
         for row in data:
+        # Add to movement list
             i = i + 1
             id = str(row[0])
             while len(id) != 3:
@@ -117,9 +125,6 @@ class MovDatabase(object):
             send_to_all_clients("003%s%s" % (id, name))
             if len(data) == i:
                 send_to_all_clients("005%s%s" % (id, name))
-                print "OKIDOKIK"
-            
-        
         print(data)
         print('New movement created')
         self.db.commit()
@@ -152,7 +157,7 @@ class MovDatabase(object):
         cursor.execute('''UPDATE movement SET name=? WHERE id=? ''', (newname, movid,))
         print('Movement query edited')
         db.commit()
-    def addStepQuery(self,movname,pos):
+    def addStepQuery(self,movid,steps):
         cursor = db.cursor()
         # Insert user 1
         cursor.execute('''SELECT * FROM movement ORDER BY steppos ASC''')
@@ -465,17 +470,18 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             m.servo_walk(100,2)
         if channel == 40:  # walk possition slider
             self.write_message("walking")
-            m.servo_slider(pos,1)
+            m.servo_slider(int(command),1)
             print "step: %d position: %d" % (channel, int(command))
         if channel == 50:  # walk possition slider
             self.write_message("saving current positions")
             #m.servo_slider(pos)
             print "step: %d position: %d" % (channel, int(command))
-        if channel == 51:  # walk possition slider
+        if channel == 51:  # add step 
+            db.addStepQuery()
             self.write_message("Insert new step behind current posistion")
             #m.servo_slider(pos)
             print "step: %d position: %d" % (channel, int(command))
-        if channel == 52:  # Delete current step
+        if channel == 52:  # Delete step
             self.write_message("Delete current step")
             #m.servo_slider(pos)
             print "step: %d position: %d" % (channel, int(command))
