@@ -100,6 +100,8 @@
         });
         // Step manipulation system
         $('#svp_btn').click(function() {
+            var sVal2 = $("#sliderA").roundSlider('getValue');
+            console.log(sVal2);
             var text = "";
             var suf = "";
             var i = 0;
@@ -112,12 +114,14 @@
             sendmsg("050",suf);
         });
         $('#addstp_btn').click(function() {
-            var sVal1 = $("#select-native-1").val();
+            var sVal1 = $("#select-native-1").val();//movement select
             sVal1 = sVal1.substring(0, 3)
-            var sVal2 = $("#sliderA").roundSlider('getValue');
+            var sVal2 = $("#sliderA").roundSlider('getValue');//step possition
+            sVal2 = "000".substring(sVal2.length).concat(sVal2);
             console.log(sVal2);
+            var sVal = sVal1 + sVal2
             if (sVal1 != ""){
-                sendmsg("051",sVal1);
+                sendmsg("051",sVal);
         }
         });
         $('#delstp_btn').click(function() {
