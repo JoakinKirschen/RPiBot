@@ -163,24 +163,24 @@ class MovDatabase(object):
         steppos = int(command[3:])
         cursor = self.db.cursor()
         cursor.execute('''SELECT * FROM steps WHERE movid=?''', (movid,))
-        ('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13 ) VALUES (?)'''
-        , (movid, steppos, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,))
         data = cursor.fetchall()
-        i = len(data)
+        i = (len(data) + 1)
         j = 0
+        print (i)
+        print (steppos)
         while j < i:
-            if j == steppos
-            ('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13 ) VALUES (?)'''
-            , (movid, steppos, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,))
-            if j > steppos
-        #    blabla hier gebleven
+            print (j)
+            if j == steppos:
+                cursor.execute('''UPDATE steps SET steppos = ? WHERE steppos = ? ''', ((j + 1), j))
+                cursor.execute('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13 ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
+                , (movid, steppos, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,))
+            if j > steppos:
+                cursor.execute('''UPDATE steps SET steppos = ? WHERE steppos = ? ''', ((j + 1), j))
+            j = j + 1
         print (data)
-        # Insert user 1
-        # cursor.execute('''SELECT * FROM movement ORDER BY steppos ASC''')
-        # cursor.execute('''INSERT INTO steps (name, phone, email, password)VALUES(?,?,?,?)''', (name1,phone1, email1, password1,))
-        
-        print('New movement created')
-        self.db.commit()                
+        self.db.commit()
+        print('New step inserted')
+
     def deleteStepQuery(self,movname,pos):
         cursor = db.cursor()
         # Insert user 1
