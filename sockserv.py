@@ -169,14 +169,16 @@ class MovDatabase(object):
         print (i)
         print (steppos)
         while k >= steppos:
-            cursor.execute('''UPDATE steps SET steppos = ? WHERE steppos = ? ''', ((k + 1), k))
+            cursor.execute('''UPDATE steps SET steppos = ? WHERE steppos = ? ''', ((k + 1), k,))
             if k == steppos:
                 cursor.execute('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13 ) 
                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
-                , (movid, steppos, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,))
+                , (movid, steppos, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
             k = k - 1
         print (data)
         self.db.commit()
+        pref = "000"[len(str(i)):] + str(i) + "000"[len(str(steppos)):] + str(steppos)
+        send_to_all_clients("006%s" % (pref))
         print('New step inserted')
 
     def delStepQuery(self,command):
@@ -190,9 +192,13 @@ class MovDatabase(object):
         print (i)
         print (steppos)
         while j <= i:
-            if j == i:
-                cursor.execute('''DELETE FROM steps WHERE steppos = ? ''', (j))
-            cursor.execute('''UPDATE steps SET steppos = ? WHERE steppos = ? ''', ((j - 1), j))
+            if j == steppos:
+                print ("drdggrgg")
+                print ( j )
+                cursor.execute('''DELETE FROM steps WHERE steppos = ? ''', (j,))
+                #cursor.execute('''DELETE FROM users WHERE id = ? ''', (delete_userid,))
+                self.db.commit()
+            cursor.execute('''UPDATE steps SET steppos = ? WHERE steppos = ? ''', ((j - 1), j,))
             j = j + 1
         print (data)
         self.db.commit()
@@ -214,7 +220,7 @@ class MovDatabase(object):
         cursor = self.db.cursor()
         cursor.execute('''UPDATE steps SET (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13 )
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) WHERE steppos = ? '''
-        , (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, steppos))
+        , (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, steppos,))
         print('Step query edited')
         self.db.commit()        
 

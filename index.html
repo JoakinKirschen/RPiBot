@@ -65,12 +65,20 @@
             var itemval= '<option value="' + newname + '">' + newname + '</option>';
             //Appends it within your select element
             console.log(newname);
-           // $("#select-native-1").val(itemval).selectmenu("refresh");
-           // $("#select-native-1").value = newname;
-           $('#select-native-1 option[value="' + newname + '"]').attr('selected', true);
-           $('select').selectmenu('refresh');
+            // $("#select-native-1").val(itemval).selectmenu("refresh");
+            // $("#select-native-1").value = newname;
+            $('#select-native-1 option[value="' + newname + '"]').attr('selected', true);
+            $('select').selectmenu('refresh');
         }
-      };
+        if (execcode == "006")//set roundslider range + value
+        {
+            var maxvalue = parseInt(message.data.substring(3, 6)); 
+            var setvalue = parseInt(message.data.substring(6));
+            //Creates the item
+            $("#sliderA").roundSlider({max: maxvalue, value: setvalue});
+            $("#sliderA").roundSlider('refresh')
+        }
+    };
 
       socket.onclose = function(){
         console.log("disconnected");
