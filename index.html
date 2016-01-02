@@ -107,7 +107,7 @@
             var i = 0;
             while (i < 10) {
                 text = $("#slider".concat(i)).val();
-                suf = suf.concat("000".substring(text.length).concat(text));
+                suf = suf.concat("0000".substring(text.length).concat(text));
                 i++;
             }
             console.log("receiving: " + suf);
@@ -125,8 +125,15 @@
         }
         });
         $('#delstp_btn').click(function() {
-            
-            sendmsg("052","0");
+           var sVal1 = $("#select-native-1").val();//movement select
+            sVal1 = sVal1.substring(0, 3)
+            var sVal2 = $("#sliderA").roundSlider('getValue');//step possition
+            sVal2 = "000".substring(sVal2.length).concat(sVal2);
+            console.log(sVal2);
+            var sVal = sVal1 + sVal2
+            if (sVal1 != ""){
+                sendmsg("052",sVal);
+        }
         });
         // Create movement system
         $('#addm_btn').click(function() {

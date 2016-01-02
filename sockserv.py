@@ -165,39 +165,58 @@ class MovDatabase(object):
         cursor.execute('''SELECT * FROM steps WHERE movid=?''', (movid,))
         data = cursor.fetchall()
         i = (len(data) + 1)
-        j = 0
+        k = i
         print (i)
         print (steppos)
-        while j < i:
-            print (j)
-            if j == steppos:
-                cursor.execute('''UPDATE steps SET steppos = ? WHERE steppos = ? ''', ((j + 1), j))
-                cursor.execute('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13 ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
+        while k >= steppos:
+            cursor.execute('''UPDATE steps SET steppos = ? WHERE steppos = ? ''', ((k + 1), k))
+            if k == steppos:
+                cursor.execute('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13 ) 
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
                 , (movid, steppos, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,))
-            if j > steppos:
-                cursor.execute('''UPDATE steps SET steppos = ? WHERE steppos = ? ''', ((j + 1), j))
-            j = j + 1
+            k = k - 1
         print (data)
         self.db.commit()
         print('New step inserted')
 
-    def deleteStepQuery(self,movname,pos):
-        cursor = db.cursor()
-        # Insert user 1
-        cursor.execute('''
-        FR0M INTO steps (name, phone, email, password)VALUES(?,?,?,?)''', (name1,phone1, email1, password1)
-        
-        )
-        print('Step query removed')
-        db.commit()
+    def delStepQuery(self,command):
+        movid = int(command[:3])
+        steppos = int(command[3:])
+        cursor = self.db.cursor()
+        cursor.execute('''SELECT * FROM steps WHERE movid=?''', (movid,))
+        data = cursor.fetchall()
+        i = len(data)
+        j = steppos
+        print (i)
+        print (steppos)
+        while j <= i:
+            if j == i:
+                cursor.execute('''DELETE FROM steps WHERE steppos = ? ''', (j))
+            cursor.execute('''UPDATE steps SET steppos = ? WHERE steppos = ? ''', ((j - 1), j))
+            j = j + 1
+        print (data)
+        self.db.commit()
+        print('Step deleted')
 
-    def editStepQuery(self,movname,pos):
-        cursor = db.cursor()
-        # Insert user 1
-        cursor.execute('''INSERT INTO users(name, phone, email, password)
-                      VALUES(?,?,?,?)''', (name1,phone1, email1, password1))
+
+    def editStepQuery(self,command):
+        movid = int(command[:3])
+        s1 = int(command[4:8])
+        s2 = int(command[8:12])
+        s3 = int(command[12:16])
+        s4 = int(command[16:20])
+        s5 = int(command[20:24])
+        s6 = int(command[24:28])
+        s7 = int(command[28:32])
+        s8 = int(command[32:36])
+        s9 = int(command[36:40])
+        s10 = int(command[40:44])
+        cursor = self.db.cursor()
+        cursor.execute('''UPDATE steps SET (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13 )
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) WHERE steppos = ? '''
+        , (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, steppos))
         print('Step query edited')
-        db.commit()        
+        self.db.commit()        
 
     def closedb(self):
         db.close()
@@ -491,13 +510,14 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         if channel == 50:  # walk possition slider
             self.write_message("saving current positions")
             #m.servo_slider(pos)
-            print "step: %d position: %d" % (channel, int(command))
+            print "step: %d position: %s" % (channel, command)
         if channel == 51:  # add step 
             db.addStepQuery(command)
             self.write_message("Insert new step behind current posistion")
             #m.servo_slider(pos)
             print "command nr: %d value: %s" % (channel, command)
         if channel == 52:  # Delete step
+            db.delStepQuery(command)
             self.write_message("Delete current step")
             #m.servo_slider(pos)
             print "step: %d position: %d" % (channel, int(command))
