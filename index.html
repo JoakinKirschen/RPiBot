@@ -75,9 +75,11 @@
             var maxvalue = parseInt(message.data.substring(3, 6)); 
             var setvalue = parseInt(message.data.substring(6));
             //Creates the item
-            if (maxvalue != 999) {$("#sliderA").roundSlider({max: maxvalue});}
-            if (setvalue != 999) {$("#sliderA").roundSlider({value: setvalue});}
-            $("#sliderA").roundSlider('refresh')
+            if (maxvalue != 999) {$("#sliderA").roundSlider("option", "max", maxvalue );}
+            if (setvalue != 999) {$("#sliderA").roundSlider("option", "value", setvalue );}
+            //if (maxvalue != 999) {$("#sliderA").roundSlider({max: maxvalue});}
+            //if (setvalue != 999) {$("#sliderA").roundSlider({value: setvalue});}
+            //$("#sliderA").roundSlider('refresh')
         }
     };
 
