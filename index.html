@@ -177,6 +177,12 @@
             sendmsg("040", e.value)
             }
         });
+        $('#select-native-1').click(function(e) {
+            var sVal = $(this).val();
+            console.log(e.value);
+            sendmsg("056",sVal);
+            
+        });
         });//]]>
     </script>
 

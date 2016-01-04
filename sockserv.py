@@ -91,7 +91,17 @@ class MovDatabase(object):
         data = cursor.fetchone()
         if data:
             send_to_all_clients("005%s%s" % (str(data[0]), data[1]))
-        
+            
+    def setMovQuery(self,command): #this also creates a new steptable
+        movid = int(command[:3])
+        cursor = self.db.cursor()
+        cursor.execute('''SELECT * FROM steps WHERE movid=? ORDER BY steppos ASC''', (movid,))
+        movdata = cursor.fetchall()
+        pref = "000"[len(str(movdata)):] + str(movdata) + "000"
+        send_to_all_clients("006%s" % (pref))
+        a = []
+        print(movdata)
+        print('Movement set')
         
     def newMovQuery(self,movname): #this also creates a new steptable
         cursor = self.db.cursor()
@@ -542,6 +552,11 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             self.write_message("Populating movmlist")
             #m.servo_slider(pos)
             print "step: %d position: %d" % (channel, int(command))
+        if channel == 56:  # Populate movement list
+            db.setMovQuery(command)
+            self.write_message("Setting movmlist")
+            #m.servo_slider(pos)
+            print "step: %d position: %s" % (channel, command)
 
     def on_close(self):
         clients.remove(self)
