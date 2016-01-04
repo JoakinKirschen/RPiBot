@@ -44,7 +44,7 @@
             var inposition =  parseInt(message.data.substring(10, 13));
             console.log("receiving channel: " + inchannel + "  position:" + inposition);
             $( "#slider".concat(inchannel)).val(inposition).slider("refresh");
-        }
+        } 
         if (execcode == "003")//add movement to menuitem
         {
             var newname = message.data.substring(3, 6) + " - " + message.data.substring(6);
@@ -75,7 +75,8 @@
             var maxvalue = parseInt(message.data.substring(3, 6)); 
             var setvalue = parseInt(message.data.substring(6));
             //Creates the item
-            $("#sliderA").roundSlider({max: maxvalue, value: setvalue});
+            if (maxvalue != 999) {$("#sliderA").roundSlider({max: maxvalue});}
+            if (setvalue != 999) {$("#sliderA").roundSlider({value: setvalue});}
             $("#sliderA").roundSlider('refresh')
         }
     };
@@ -103,7 +104,6 @@
         });
         $('#rst_btn').click(function() {
             sendmsg("030","0");
-            $("#sliderA").roundSlider('setValue', 20);
             //$("#sliderA").roundSlider("disable");
         });
         // Step manipulation system

@@ -160,7 +160,7 @@ class MovDatabase(object):
         
     def addStepQuery(self,command):
         movid = int(command[:3])
-        steppos = int(command[3:])
+        steppos = (int(command[3:]) + 1)
         cursor = self.db.cursor()
         cursor.execute('''SELECT * FROM steps WHERE movid=?''', (movid,))
         data = cursor.fetchall()
@@ -188,21 +188,20 @@ class MovDatabase(object):
         cursor.execute('''SELECT * FROM steps WHERE movid=?''', (movid,))
         data = cursor.fetchall()
         i = len(data)
-        j = steppos
-        print (i)
-        print (steppos)
-        while j <= i:
-            if j == steppos:
-                print ("drdggrgg")
-                print ( j )
-                cursor.execute('''DELETE FROM steps WHERE steppos = ? ''', (j,))
-                #cursor.execute('''DELETE FROM users WHERE id = ? ''', (delete_userid,))
-                self.db.commit()
-            cursor.execute('''UPDATE steps SET steppos = ? WHERE steppos = ? ''', ((j - 1), j,))
-            j = j + 1
-        print (data)
-        self.db.commit()
-        print('Step deleted')
+        if i > 1:
+            j = steppos
+            while j <= i:
+                if j == steppos:
+                    cursor.execute('''DELETE FROM steps WHERE steppos = ? ''', (j,))
+                    #cursor.execute('''DELETE FROM users WHERE id = ? ''', (delete_userid,))
+                    self.db.commit()
+                cursor.execute('''UPDATE steps SET steppos = ? WHERE steppos = ? ''', ((j - 1), j,))
+                j = j + 1
+            print (data)
+            self.db.commit()
+            pref = "000"[len(str(i - 1)):] + str(i - 1) + "000"[len(str(steppos - 1)):] + str(steppos - 1)
+            send_to_all_clients("006%s" % (pref))
+            print('Step deleted')
 
 
     def editStepQuery(self,command):
@@ -354,6 +353,7 @@ class motion:
     
     def servo_reset_sliders(self):
         send_to_all_clients("002" + "servo20" + "0")
+        send_to_all_clients("006%s" % ("999000"))
         motion.walkpos = 0
     
     def servo_set(self, channel, pos, incr):
@@ -452,14 +452,14 @@ class motion:
             while y < len(motion.servoset):
                 self.servo_set(y, -devider[y], 1)
                 y = y + 1
-            time.sleep(0.02)
+            time.sleep(0.01)
             x += 1
         x = 0
         while x < len(motion.servoset):
             self.servo_set(x, 0, 0)
             print "Loop trough %d" % x
             x += 1
-            time.sleep(0.02)
+            time.sleep(0.01)
 
 
 
