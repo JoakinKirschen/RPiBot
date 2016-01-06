@@ -14,6 +14,7 @@ import os
 
 # Initialise the PWM device using the default address
 pwm = PWM(0x42)
+servomov1 = []
 
 
 class MovDatabase(object):
@@ -76,6 +77,17 @@ class MovDatabase(object):
         self.db.commit()
         cursor.close()
         
+    def setMovArray(self,command): #this also creates a new steptable
+        movid = int(command[:3])
+        cursor = self.db.cursor()
+        cursor.execute('''SELECT * FROM steps WHERE movid=? ORDER BY steppos ASC''', (movid,))
+        movdata = cursor.fetchall()
+        #pref = "000"[len(str(movdata)):] + str(movdata) + "000"
+        #send_to_all_clients("006%s" % (pref))
+        print(movdata)
+        servomov1 = movdata
+        print('Movement set')
+        
     def popMovQuery(self): #initialize the movement menu
         cursor = self.db.cursor()
         cursor.execute('''SELECT * FROM movement ORDER BY id ASC''')
@@ -89,19 +101,23 @@ class MovDatabase(object):
             send_to_all_clients("003%s%s" % (id, name))
         cursor.execute('''SELECT * FROM movement ORDER BY ROWID ASC LIMIT 1''')
         data = cursor.fetchone()
+        print (data)
         if data:
             send_to_all_clients("005%s%s" % (str(data[0]), data[1]))
+            self.setMovArray(id)
             
-    def setMovQuery(self,command): #this also creates a new steptable
+    def setMovQuery(self,command): #this also creates a new steptable HIER GEBLEVEN!!!!!!!!!!!
         movid = int(command[:3])
         cursor = self.db.cursor()
         cursor.execute('''SELECT * FROM steps WHERE movid=? ORDER BY steppos ASC''', (movid,))
         movdata = cursor.fetchall()
-        pref = "000"[len(str(movdata)):] + str(movdata) + "000"
+        id = "000"[len(movdata):] + str(len(movdata))
+        print (len(str(movdata)))
+        print (movdata)
+        pref = id + "000"
         send_to_all_clients("006%s" % (pref))
-        a = []
-        print(movdata)
         print('Movement set')
+        self.setMovArray(id)
         
     def newMovQuery(self,movname): #this also creates a new steptable
         cursor = self.db.cursor()
@@ -138,6 +154,7 @@ class MovDatabase(object):
         print(data)
         print('New movement created')
         self.db.commit()
+        self.setMovArray(id)
         
     def delMovQuery(self,movid): #must remove coresponding steptable
         cursor = self.db.cursor()
@@ -149,6 +166,7 @@ class MovDatabase(object):
             data = cursor.fetchone()
             cursor.execute('''DELETE FROM movement WHERE id = ? ''', (movid,))
             cursor.execute('''DELETE FROM steps WHERE movid = ? ''', (movid,))
+            self.db.commit()
             id = str(data[0])
             name = data[1]
             while len(id) != 3:
@@ -156,17 +174,17 @@ class MovDatabase(object):
             # Remove movement from list
             send_to_all_clients("004%s%s" % (id, name))
             print('Movement query removed')
-            self.db.commit()
             cursor.execute('''SELECT * FROM movement ORDER BY ROWID ASC LIMIT 1''')
             data = cursor.fetchone()
             send_to_all_clients("005%s%s" % (str(data[0]), data[1]))
-        
+            self.setMovArray(id)
+            
     def editMovQuery(self,movid,newname): #steptable remains unchanged
         cursor = db.cursor()
         # Insert user 1
         cursor.execute('''UPDATE movement SET name=? WHERE id=? ''', (newname, movid,))
+        self.db.commit()
         print('Movement query edited')
-        db.commit()
         
     def addStepQuery(self,command):
         movid = int(command[:3])
@@ -187,9 +205,11 @@ class MovDatabase(object):
             k = k - 1
         print (data)
         self.db.commit()
+        id = "000"[len(str(i - 1)):] + str(i - 1)
         pref = "000"[len(str(i)):] + str(i) + "000"[len(str(steppos)):] + str(steppos)
         send_to_all_clients("006%s" % (pref))
         print('New step inserted')
+        self.setMovArray(id)
 
     def delStepQuery(self,command):
         movid = int(command[:3])
@@ -209,13 +229,16 @@ class MovDatabase(object):
                 j = j + 1
             print (data)
             self.db.commit()
-            pref = "000"[len(str(i - 1)):] + str(i - 1) + "000"[len(str(steppos - 1)):] + str(steppos - 1)
+            id = "000"[len(str(i - 1)):] + str(i - 1)
+            pref = id + "000"[len(str(steppos - 1)):] + str(steppos - 1)
             send_to_all_clients("006%s" % (pref))
             print('Step deleted')
+            self.setMovArray(id)
 
 
     def editStepQuery(self,command):
         movid = int(command[:3])
+        id = (command[:3])
         s1 = int(command[4:8])
         s2 = int(command[8:12])
         s3 = int(command[12:16])
@@ -231,7 +254,8 @@ class MovDatabase(object):
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) WHERE steppos = ? '''
         , (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, steppos,))
         print('Step query edited')
-        self.db.commit()        
+        self.db.commit()
+        self.setMovArray(id)
 
     def closedb(self):
         db.close()
@@ -523,11 +547,11 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             self.write_message("walking")
             m.servo_slider(int(command),1)
             print "step: %d position: %d" % (channel, int(command))
-        if channel == 50:  # walk possition slider
+        if channel == 50:  # Save current position
             self.write_message("saving current positions")
             #m.servo_slider(pos)
             print "step: %d position: %s" % (channel, command)
-        if channel == 51:  # add step 
+        if channel == 51:  # Add step 
             db.addStepQuery(command)
             self.write_message("Insert new step behind current posistion")
             #m.servo_slider(pos)
@@ -552,7 +576,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             self.write_message("Populating movmlist")
             #m.servo_slider(pos)
             print "step: %d position: %d" % (channel, int(command))
-        if channel == 56:  # Populate movement list
+        if channel == 56:  # Set movement list
             db.setMovQuery(command)
             self.write_message("Setting movmlist")
             #m.servo_slider(pos)
