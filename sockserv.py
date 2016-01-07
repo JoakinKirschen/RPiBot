@@ -14,8 +14,11 @@ import os
 
 # Initialise the PWM device using the default address
 pwm = PWM(0x42)
-servomov1 = []
 
+# Globals
+currentmovarray = []
+currentmovid = 0
+currentmovticks = 0
 
 class MovDatabase(object):
     # Create a database in RAM
@@ -80,13 +83,16 @@ class MovDatabase(object):
     def setMovArray(self,command): #this also creates a new steptable
         movid = int(command[:3])
         cursor = self.db.cursor()
+        print (movid)
         cursor.execute('''SELECT * FROM steps WHERE movid=? ORDER BY steppos ASC''', (movid,))
         movdata = cursor.fetchall()
         #pref = "000"[len(str(movdata)):] + str(movdata) + "000"
         #send_to_all_clients("006%s" % (pref))
         print(movdata)
-        servomov1 = movdata
-        print('Movement set')
+        currentmovarray = movdata
+        currentmovid = movid
+        currentmovticks = len(movdata)
+        print('Movement array set')
         
     def popMovQuery(self): #initialize the movement menu
         cursor = self.db.cursor()
@@ -109,15 +115,14 @@ class MovDatabase(object):
     def setMovQuery(self,command): #this also creates a new steptable HIER GEBLEVEN!!!!!!!!!!!
         movid = int(command[:3])
         cursor = self.db.cursor()
+        print (movid)
         cursor.execute('''SELECT * FROM steps WHERE movid=? ORDER BY steppos ASC''', (movid,))
         movdata = cursor.fetchall()
-        id = "000"[len(movdata):] + str(len(movdata))
-        print (len(str(movdata)))
-        print (movdata)
-        pref = id + "000"
+        pref = "000"[len(str(len(movdata))):] + str(len(movdata)) + "000"
+        print (pref)
         send_to_all_clients("006%s" % (pref))
         print('Movement set')
-        self.setMovArray(id)
+        self.setMovArray(command)
         
     def newMovQuery(self,movname): #this also creates a new steptable
         cursor = self.db.cursor()
@@ -292,74 +297,6 @@ class motion:
         ["servo14", 375, 375],
         ["servo15", 304, 304]  # Rotate camera
     ]
-
-    servomov1 = [
-            # servo0 Foot right:
-            [[0, 40, 0, 5], [0, -40, 5, 5], [0, 0, 5, 0],
-            [0, -40, 10, 5], [0, 40, 15, 5], [0, 0, 15, 0]],
-            # servo1 Foot left:
-            [[0, 40, 0, 5], [0, -40, 5, 5], [0, 0, 5, 0],
-            [0, -40, 10, 5], [0, 40, 15, 5], [0, 0, 15, 0]],
-            # servo2 Leg right bottom:
-            [[0, 0, 0, 5], [0, 0, 5, 5], [0, 0, 5, 0],
-            [0, 15, 10, 5], [0, -15, 15, 5], [0, 0, 15, 0]],
-            # servo3 Leg left bottom:
-            [[0, 0, 0, 5], [0, -15, 5, 5], [0, 0, 5, 0],
-            [0, 15, 10, 5], [0, 0, 15, 5], [0, 0, 15, 0]],
-            # servo4 Leg right middle:
-            [[0, 60, 0, 5], [0, -60, 5, 5], [0, 0, 5, 0],
-            [0, 0, 10, 5], [0, 0, 15, 5], [0, 0, 15, 0]],
-            # servo5 Leg left middle:
-            [[0, 0, 0, 5], [0, 0, 5, 5], [0, 0, 5, 0],
-            [0, -60, 10, 5], [0, 60, 15, 5], [0, 0, 15, 0]],
-            # servo6 Leg right top:
-            [[0, 130, 0, 5], [0, -130, 5, 5], [0, 0, 5, 0],
-            [0, 0, 10, 5], [0, 0, 15, 5], [0, 0, 15, 0]],
-            # servo7 Leg left top:
-            [[0, 0, 0, 5], [0, 0, 5, 5], [0, 0, 5, 0],
-            [ 0, -130, 10, 5], [0, 130, 15, 5], [0, 0, 15, 0]],
-            # servo8 Hip right:
-            [[0, 22, 0, 2], [0, -22, 5, 5], [0, 0, 5, 0],
-            [0, -22, 10, 2], [0, 22, 15, 5], [0, 0, 15, 0]],
-            # servo9 Hip left:
-            [[0, 22, 0, 2], [0, -22, 5, 5], [0, 0, 5, 0],
-            [0, -22, 10, 2], [0, 22, 15, 5], [0, 0, 15, 0]]
-    ]
-
-    servomov2 = [
-            # servo0 Foot right:
-            [[0, 40, 0, 5], [0, -40, 5, 5], [0, 0, 5, 0],
-            [0, -40, 10, 5], [0, 40, 15, 5], [0, 0, 15, 0]],
-            # servo1 Foot left:
-            [[0, 40, 0, 5], [0, -40, 5, 5], [0, 0, 5, 0],
-            [0, -40, 10, 5], [0, 40, 15, 5], [0, 0, 15, 0]],
-            # servo2 Leg right bottom:
-            [[0, 0, 0, 5], [0, 0, 5, 5], [0, 0, 5, 0],
-            [0, 15, 10, 5], [0, -15, 15, 5], [0, 0, 15, 0]],
-            # servo3 Leg left bottom:
-            [[0, 0, 0, 5], [0, -15, 5, 5], [0, 0, 5, 0],
-            [0, 15, 10, 5], [0, 0, 15, 5], [0, 0, 15, 0]],
-            # servo4 Leg right middle:
-            [[0, 60, 0, 5], [0, -60, 5, 5], [0, 0, 5, 0],
-            [0, 0, 10, 5], [0, 0, 15, 5], [0, 0, 15, 0]],
-            # servo5 Leg left middle:
-            [[0, 0, 0, 5], [0, 0, 5, 5], [0, 0, 5, 0],
-            [0, -60, 10, 5], [0, 60, 15, 5], [0, 0, 15, 0]],
-            # servo6 Leg right top:
-            [[0, 130, 0, 5], [0, -130, 5, 5], [0, 0, 5, 0],
-            [0, 0, 10, 5], [0, 0, 15, 5], [0, 0, 15, 0]],
-            # servo7 Leg left top:
-            [[0, 0, 0, 5], [0, 0, 5, 5], [0, 0, 5, 0],
-            [ 0, -130, 10, 5], [0, 130, 15, 5], [0, 0, 15, 0]],
-            # servo8 Hip right:
-            [[0, 22, 0, 2], [0, -22, 5, 5], [0, 0, 5, 0],
-            [0, -22, 10, 2], [0, 22, 15, 5], [0, 0, 15, 0]],
-            # servo9 Hip left:
-            [[0, 22, 0, 2], [0, -22, 5, 5], [0, 0, 5, 0],
-            [0, -22, 10, 2], [0, 22, 15, 5], [0, 0, 15, 0]]
-    ]
-    
-    
     
     servoMin = 150  # Min pulse length out of 4096
     servoMax = 600  # Max pulse length out of 4096
@@ -377,8 +314,8 @@ class motion:
         return max
     
     
-    ticks1 = servomov_ticks(servomov1)
-    ticks2 = servomov_ticks(servomov2)
+    #ticks1 = servomov_ticks(servomov1)
+    #ticks2 = servomov_ticks(servomov2)
     
     def servo_update_slider(self, channel, curpos, newpos):
         if curpos != newpos:
@@ -410,13 +347,9 @@ class motion:
     
 # startpos #endpos #startime #steps
 # make loop with time range arrays to tell servos when to hit
-    def servo_walk(self, speed, patern):
-        if patern == 1:
-            array = motion.servomov1
-            tick = motion.ticks1
-        if patern == 2: 
-            array = motion.servomov2
-            tick = motion.ticks2
+    def servo_walk(self, speed):
+            array = currentmovarray
+            ticks = currentmovticks
         z = 0
         while z < 2:
             x = 0
@@ -433,19 +366,15 @@ class motion:
                 time.sleep(0.1)
                 x += 1
             z += 1
-    def servo_slider(self, nextpos, patern):
+    def servo_slider(self, nextpos):
         b = 0
         c = 0
-        if patern == 1:
-            array = motion.servomov1
-            tick = motion.ticks1
-        if patern == 2: 
-            array = motion.servomov2
-            tick = motion.ticks2
-        if nextpos == 0 and motion.walkpos == 20:
+            array = currentmovarray
+            ticks = currentmovticks
+        if nextpos == 0 and motion.walkpos == ticks:
             motion.walkpos = 0
-        if nextpos == 20 and motion.walkpos == 0:
-            motion.walkpos = 20
+        if nextpos == ticks and motion.walkpos == 0:
+            motion.walkpos = ticks
         if motion.walkpos < nextpos:
             a = 1
             b = motion.walkpos
@@ -545,7 +474,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             m.servo_walk(100,2)
         if channel == 40:  # walk possition slider
             self.write_message("walking")
-            m.servo_slider(int(command),1)
+            m.servo_slider(int(command))
             print "step: %d position: %d" % (channel, int(command))
         if channel == 50:  # Save current position
             self.write_message("saving current positions")
