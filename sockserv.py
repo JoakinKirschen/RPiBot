@@ -94,7 +94,7 @@ class MovDatabase(object):
         #send_to_all_clients("006%s" % (pref))
         print(movdata)
         currentmovarray = movdata
-        currentmovarray = movid
+        currentmovid = movid
         currentmovticks = len(movdata)
         print('Movement array set')
         
@@ -382,6 +382,7 @@ class motion:
         array = currentmovarray
         ticks = currentmovticks
         walkpos = currentmovpossition
+        print ("frrfrfrfrf")
         print (array)
         print ("frrfrfrfrf")
         if nextpos == 0 and walkpos == ticks:
