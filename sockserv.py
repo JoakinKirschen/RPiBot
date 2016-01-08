@@ -10,7 +10,7 @@ import time
 import math
 import sqlite3
 import os
-
+ 
 
 # Initialise the PWM device using the default address
 pwm = PWM(0x42)
@@ -19,6 +19,7 @@ pwm = PWM(0x42)
 currentmovarray = []
 currentmovid = 0
 currentmovticks = 0
+currentmovpossition = 0
 
 class MovDatabase(object):
     # Create a database in RAM
@@ -81,16 +82,19 @@ class MovDatabase(object):
         cursor.close()
         
     def setMovArray(self,command): #this also creates a new steptable
+        global currentmovarray 
+        global currentmovid
+        global currentmovticks
         movid = int(command[:3])
         cursor = self.db.cursor()
         print (movid)
-        cursor.execute('''SELECT s1 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11 s12 s13 s14 s15 s16 s17 s18 s19 FROM steps WHERE movid=? ORDER BY steppos ASC''', (movid,))
+        cursor.execute('''SELECT s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16, s17, s18, s19 FROM steps WHERE movid=? ORDER BY steppos ASC''', (movid,))
         movdata = cursor.fetchall()
         #pref = "000"[len(str(movdata)):] + str(movdata) + "000"
         #send_to_all_clients("006%s" % (pref))
         print(movdata)
         currentmovarray = movdata
-        currentmovid = movid
+        currentmovarray = movid
         currentmovticks = len(movdata)
         print('Movement array set')
         
@@ -192,6 +196,7 @@ class MovDatabase(object):
         print('Movement query edited')
         
     def addStepQuery(self,command):
+        global currentmovpossition 
         movid = int(command[:3])
         steppos = (int(command[3:]) + 1)
         cursor = self.db.cursor()
@@ -213,10 +218,12 @@ class MovDatabase(object):
         id = "000"[len(str(i - 1)):] + str(i - 1)
         pref = "000"[len(str(i)):] + str(i) + "000"[len(str(steppos)):] + str(steppos)
         send_to_all_clients("006%s" % (pref))
+        currentmovpossition = steppos
         print('New step inserted')
         self.setMovArray(id)
 
     def delStepQuery(self,command):
+        global currentmovpossition
         movid = int(command[:3])
         steppos = int(command[3:])
         cursor = self.db.cursor()
@@ -237,6 +244,7 @@ class MovDatabase(object):
             id = "000"[len(str(i - 1)):] + str(i - 1)
             pref = id + "000"[len(str(steppos - 1)):] + str(steppos - 1)
             send_to_all_clients("006%s" % (pref))
+            currentmovpossition = (steppos - 1)
             print('Step deleted')
             self.setMovArray(id)
 
@@ -348,12 +356,13 @@ class motion:
 # startpos #endpos #startime #steps
 # make loop with time range arrays to tell servos when to hit
     def servo_walk(self, speed):
-            array = currentmovarray
-            ticks = currentmovticks
+        array = currentmovarray
+        ticks = currentmovticks
+        print (array)
         z = 0
         while z < 2:
             x = 0
-            while x < tick:
+            while x < ticks:
                 y = 0
                 while y < len(array):
                     seq = 0
@@ -367,24 +376,28 @@ class motion:
                 x += 1
             z += 1
     def servo_slider(self, nextpos):
+        global currentmovpossition
         b = 0
         c = 0
-            array = currentmovarray
-            ticks = currentmovticks
-        if nextpos == 0 and motion.walkpos == ticks:
-            motion.walkpos = 0
-        if nextpos == ticks and motion.walkpos == 0:
-            motion.walkpos = ticks
-        if motion.walkpos < nextpos:
+        array = currentmovarray
+        ticks = currentmovticks
+        walkpos = currentmovpossition
+        print (array)
+        print ("frrfrfrfrf")
+        if nextpos == 0 and walkpos == ticks:
+            walkpos = 0
+        if nextpos == ticks and walkpos == 0:
+            walkpos = ticks
+        if walkpos < nextpos:
             a = 1
-            b = motion.walkpos
+            b = walkpos
             c = nextpos
-        elif motion.walkpos > nextpos:
+        elif walkpos > nextpos:
             a = -1
             b = nextpos
-            c = motion.walkpos
+            c = walkpos
         print nextpos
-        print motion.walkpos
+        print walkpos
             
         while b < c:
             d = 0
@@ -398,7 +411,7 @@ class motion:
                 d += 1
             # time.sleep(0.1)
             b += 1
-            motion.walkpos = nextpos
+            currentmovpossition = nextpos
     def servo_reset(self):
 #        pwm.setPWMFreq(60)                       # Set frequency to 60 Hz
         walkpos = 0
