@@ -95,7 +95,6 @@
     <script type="text/javascript">
     //<![CDATA[
         $(window).load(function(){
-        sendmsg("055","0");  //populate movement list
         $("#slider0, #slider1, #slider2, #slider3, #slider4, #slider5, #slider6, #slider7, #slider8, #slider9, #slider20, #slider15").change(function() {
             var sVal = $(this).val();
             var sName = $(this).attr("id").substring(6);
@@ -183,6 +182,7 @@
             sendmsg("056",sVal);
             
         });
+        sendmsg("055","0");  //populate movement list
         });//]]>
     </script>
 

@@ -114,15 +114,16 @@ class MovDatabase(object):
         print (data)
         if data:
             send_to_all_clients("005%s%s" % (str(data[0]), data[1]))
-            self.setMovArray(id)
+            self.setMovQuery(str(data[0]))
+        
             
-    def setMovQuery(self,command): #this also creates a new steptable HIER GEBLEVEN!!!!!!!!!!!
+    def setMovQuery(self,command): #this also creates a new steptable!!!!!!!!!!!
         movid = int(command[:3])
         cursor = self.db.cursor()
         print (movid)
         cursor.execute('''SELECT * FROM steps WHERE movid=? ORDER BY steppos ASC''', (movid,))
         movdata = cursor.fetchall()
-        pref = "000"[len(str(len(movdata))):] + str(len(movdata)) + "000"
+        pref = "000"[len(str(len(movdata) - 1)):] + str(len(movdata) - 1) + "000"
         print (pref)
         send_to_all_clients("006%s" % (pref))
         print('Movement set')
@@ -133,9 +134,10 @@ class MovDatabase(object):
         cursor.execute('''INSERT INTO movement (name) VALUES (?)''', (movname,))
         cursor.execute('''SELECT id FROM movement WHERE name=?''', (movname,))
         movid = cursor.fetchone()
-        cursor.execute
-        ('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13 ) VALUES (?)'''
-        , (movid, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,))
+        movid = (movid[0])
+        cursor.execute('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13 ) 
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
+        , (movid, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
         m.servo_reset()
         m.servo_reset_sliders()
         #cursor.execute('''SELECT id, name  WHERE name=?''', (movname))
@@ -216,11 +218,12 @@ class MovDatabase(object):
         print (data)
         self.db.commit()
         id = "000"[len(str(i - 1)):] + str(i - 1)
-        pref = "000"[len(str(i)):] + str(i) + "000"[len(str(steppos)):] + str(steppos)
+        #pref = "000"[len(str(i)):] + str(i) + "000"[len(str(steppos)):] + str(steppos)
+        pref = id + "000"[len(str(steppos)):] + str(steppos)
         send_to_all_clients("006%s" % (pref))
         currentmovpossition = steppos
         print('New step inserted')
-        self.setMovArray(id)
+        self.setMovArray(command)
 
     def delStepQuery(self,command):
         global currentmovpossition
@@ -381,38 +384,33 @@ class motion:
         c = 0
         array = currentmovarray
         ticks = currentmovticks
-        walkpos = currentmovpossition
+        currentpos = currentmovpossition
         print ("frrfrfrfrf")
         print (array)
+        print (nextpos)
         print ("frrfrfrfrf")
-        if nextpos == 0 and walkpos == ticks:
-            walkpos = 0
-        if nextpos == ticks and walkpos == 0:
-            walkpos = ticks
-        if walkpos < nextpos:
+        if nextpos == 0 and currentpos == ticks:
+            currentpos = 0
+        if nextpos == ticks and currentpos == 0:
+            currentpos = ticks
+        if currentpos < nextpos:
             a = 1
-            b = walkpos
+            b = currentpos
             c = nextpos
-        elif walkpos > nextpos:
+        elif currentpos > nextpos:
             a = -1
             b = nextpos
-            c = walkpos
+            c = currentpos
         print nextpos
-        print walkpos
-            
-        while b < c:
-            d = 0
-            while d < len(array):
-                seq = 0
-                while seq < len(array[d]):
-                    if array[d][seq][2] <= b < array[d][seq][3] + array[d][seq][2]:
-                        pos = (array[d][seq][1] / array[d][seq][3]) * a
-                        self.servo_set(d, pos, 1)
-                    seq += 1
-                d += 1
-            # time.sleep(0.1)
-            b += 1
-            currentmovpossition = nextpos
+        print len(array[nextpos])
+        d = 0
+        while d < len(array[nextpos]):
+            pos = array[nextpos][d]
+            if pos != "None" and pos != array[currentpos][d]:
+                self.servo_set(d, pos, 0)
+                currentmovpossition = nextpos
+            d += 1
+
     def servo_reset(self):
 #        pwm.setPWMFreq(60)                       # Set frequency to 60 Hz
         walkpos = 0
