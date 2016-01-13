@@ -244,31 +244,35 @@ class MovDatabase(object):
                 j = j + 1
             print (data)
             self.db.commit()
-            id = "000"[len(str(i - 1)):] + str(i - 1)
+            id = "000"[len(str(i - 2)):] + str(i - 2)
             pref = id + "000"[len(str(steppos - 1)):] + str(steppos - 1)
             send_to_all_clients("006%s" % (pref))
             currentmovpossition = (steppos - 1)
             print('Step deleted')
-            self.setMovArray(id)
+            self.setMovArray(command)
 
 
     def editStepQuery(self,command):
         movid = int(command[:3])
         id = (command[:3])
-        s1 = int(command[4:8])
-        s2 = int(command[8:12])
-        s3 = int(command[12:16])
-        s4 = int(command[16:20])
-        s5 = int(command[20:24])
-        s6 = int(command[24:28])
-        s7 = int(command[28:32])
-        s8 = int(command[32:36])
-        s9 = int(command[36:40])
-        s10 = int(command[40:44])
+        print (command[3:])
+        array = map(int, (command[4:]).split('a'))
+        s1 = array[0]
+        s2 = array[1]
+        s3 = array[2]
+        s4 = array[3]
+        s5 = array[4]
+        s6 = array[5]
+        s7 = array[6]
+        s8 = array[7]
+        s9 = array[8]
+        s10 = array[9]
         cursor = self.db.cursor()
-        cursor.execute('''UPDATE steps SET (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13 )
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) WHERE steppos = ? '''
-        , (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, steppos,))
+        #cursor.execute('''UPDATE steps SET s1 = ? WHERE steppos = ? ''', (10, 0,))
+        cursor.execute('''UPDATE steps SET s1 = ?, s2 = ?, s3 = ?, s4 = ?, s5 = ?, s6 = ?, s7 = ?, s8 = ?, s9= ?, s10 = ?, s11 = ?, s12= ?, s13 = ? WHERE steppos = ? AND movid = ?''',
+        (s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, 0, 0, 0, currentmovpossition, movid))
+        #cursor.execute('''UPDATE steps SET (s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13 )
+        #VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) WHERE steppos = ? ''', (s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, 0, 0, 0, 0,))
         print('Step query edited')
         self.db.commit()
         self.setMovArray(id)
@@ -406,7 +410,9 @@ class motion:
         d = 0
         while d < len(array[nextpos]):
             pos = array[nextpos][d]
+            print (pos)
             if pos != "None" and pos != array[currentpos][d]:
+                print ("inloop")
                 self.servo_set(d, pos, 0)
                 currentmovpossition = nextpos
             d += 1
@@ -490,6 +496,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             print "step: %d position: %d" % (channel, int(command))
         if channel == 50:  # Save current position
             self.write_message("saving current positions")
+            db.editStepQuery(command)
             #m.servo_slider(pos)
             print "step: %d position: %s" % (channel, command)
         if channel == 51:  # Add step 

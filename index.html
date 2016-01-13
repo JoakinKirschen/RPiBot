@@ -109,14 +109,16 @@
         });
         // Step manipulation system
         $('#svp_btn').click(function() {
+            var sVal1 = $("#select-native-1").val();//movement select
+            sVal1 = sVal1.substring(0, 3)
             var sVal2 = $("#sliderA").roundSlider('getValue');
             console.log(sVal2);
             var text = "";
-            var suf = "";
+            var suf = sVal1;
             var i = 0;
             while (i < 10) {
                 text = $("#slider".concat(i)).val();
-                suf = suf.concat("0000".substring(text.length).concat(text));
+                suf = suf.concat("a".concat(text));
                 i++;
             }
             console.log("receiving: " + suf);
