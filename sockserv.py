@@ -118,6 +118,7 @@ class MovDatabase(object):
         
             
     def setMovQuery(self,command): #this also creates a new steptable!!!!!!!!!!!
+        global currentmovpossition
         movid = int(command[:3])
         cursor = self.db.cursor()
         print (movid)
@@ -126,10 +127,12 @@ class MovDatabase(object):
         pref = "000"[len(str(len(movdata) - 1)):] + str(len(movdata) - 1) + "000"
         print (pref)
         send_to_all_clients("006%s" % (pref))
+        currentmovpossition = 0
         print('Movement set')
         self.setMovArray(command)
         
     def newMovQuery(self,movname): #this also creates a new steptable
+        global currentmovpossition
         cursor = self.db.cursor()
         cursor.execute('''INSERT INTO movement (name) VALUES (?)''', (movname,))
         cursor.execute('''SELECT id FROM movement WHERE name=?''', (movname,))
@@ -163,6 +166,8 @@ class MovDatabase(object):
             if len(data) == i:
                 send_to_all_clients("005%s%s" % (id, name))
         print(data)
+        send_to_all_clients("006%s" % ("000000"))
+        currentmovpossition = 0
         print('New movement created')
         self.db.commit()
         self.setMovArray(id)
@@ -206,10 +211,9 @@ class MovDatabase(object):
         data = cursor.fetchall()
         i = (len(data) + 1)
         k = i
-        print (i)
         print (steppos)
         while k >= steppos:
-            cursor.execute('''UPDATE steps SET steppos = ? WHERE steppos = ? ''', ((k + 1), k,))
+            cursor.execute('''UPDATE steps SET steppos = ? WHERE steppos = ? AND movid = ?''', ((k + 1), k, movid,))
             if k == steppos:
                 cursor.execute('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13 ) 
                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
@@ -237,10 +241,10 @@ class MovDatabase(object):
             j = steppos
             while j <= i:
                 if j == steppos:
-                    cursor.execute('''DELETE FROM steps WHERE steppos = ? ''', (j,))
+                    cursor.execute('''DELETE FROM steps WHERE steppos = ?  AND movid = ?''', (j, movid,))
                     #cursor.execute('''DELETE FROM users WHERE id = ? ''', (delete_userid,))
                     self.db.commit()
-                cursor.execute('''UPDATE steps SET steppos = ? WHERE steppos = ? ''', ((j - 1), j,))
+                cursor.execute('''UPDATE steps SET steppos = ? WHERE steppos = ?  AND movid = ?''', ((j - 1), j, movid,))
                 j = j + 1
             print (data)
             self.db.commit()
@@ -255,7 +259,6 @@ class MovDatabase(object):
     def editStepQuery(self,command):
         movid = int(command[:3])
         id = (command[:3])
-        print (command[3:])
         array = map(int, (command[4:]).split('a'))
         s1 = array[0]
         s2 = array[1]
@@ -268,11 +271,11 @@ class MovDatabase(object):
         s9 = array[8]
         s10 = array[9]
         cursor = self.db.cursor()
-        #cursor.execute('''UPDATE steps SET s1 = ? WHERE steppos = ? ''', (10, 0,))
         cursor.execute('''UPDATE steps SET s1 = ?, s2 = ?, s3 = ?, s4 = ?, s5 = ?, s6 = ?, s7 = ?, s8 = ?, s9= ?, s10 = ?, s11 = ?, s12= ?, s13 = ? WHERE steppos = ? AND movid = ?''',
-        (s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, 0, 0, 0, currentmovpossition, movid))
-        #cursor.execute('''UPDATE steps SET (s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13 )
-        #VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) WHERE steppos = ? ''', (s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, 0, 0, 0, 0,))
+        (s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, 0, 0, 0, currentmovpossition, movid,))
+        cursor.execute('''SELECT * FROM steps WHERE movid=?''', (movid,))
+        data = cursor.fetchall()
+        print (data)
         print('Step query edited')
         self.db.commit()
         self.setMovArray(id)
@@ -338,8 +341,10 @@ class motion:
             send_to_all_clients(mes)
     
     def servo_reset_sliders(self):
+        global currentmovpossition
         send_to_all_clients("002" + "servo20" + "0")
         send_to_all_clients("006%s" % ("999000"))
+        currentmovpossition = 0
         motion.walkpos = 0
     
     def servo_set(self, channel, pos, incr):
@@ -389,10 +394,6 @@ class motion:
         array = currentmovarray
         ticks = currentmovticks
         currentpos = currentmovpossition
-        print ("frrfrfrfrf")
-        print (array)
-        print (nextpos)
-        print ("frrfrfrfrf")
         if nextpos == 0 and currentpos == ticks:
             currentpos = 0
         if nextpos == ticks and currentpos == 0:
@@ -405,12 +406,9 @@ class motion:
             a = -1
             b = nextpos
             c = currentpos
-        print nextpos
-        print len(array[nextpos])
         d = 0
         while d < len(array[nextpos]):
             pos = array[nextpos][d]
-            print (pos)
             if pos != "None" and pos != array[currentpos][d]:
                 print ("inloop")
                 self.servo_set(d, pos, 0)
@@ -497,38 +495,31 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         if channel == 50:  # Save current position
             self.write_message("saving current positions")
             db.editStepQuery(command)
-            #m.servo_slider(pos)
             print "step: %d position: %s" % (channel, command)
         if channel == 51:  # Add step 
             db.addStepQuery(command)
             self.write_message("Insert new step behind current posistion")
-            #m.servo_slider(pos)
             print "command nr: %d value: %s" % (channel, command)
         if channel == 52:  # Delete step
             db.delStepQuery(command)
             self.write_message("Delete current step")
-            #m.servo_slider(pos)
             print "step: %d position: %d" % (channel, int(command))
         if channel == 53:  # Add a new motion
             db.newMovQuery(command)
             self.write_message("Add a new motion")
-            #m.servo_slider(pos)
             print "step: %d position: %s" % (channel, command)
         if channel == 54:  # Delete current motion
             db.delMovQuery(int(command))
             self.write_message("Delete current motion")
-            #m.servo_slider(pos)
             print "step: %d position: %d" % (channel, int(command))
         if channel == 55:  # Populate movement list
             db.popMovQuery()
             self.write_message("Populating movmlist")
-            #m.servo_slider(pos)
             print "step: %d position: %d" % (channel, int(command))
         if channel == 56:  # Set movement list
             db.setMovQuery(command)
             self.write_message("Setting movmlist")
-            #m.servo_slider(pos)
-            print "step: %d position: %s" % (channel, command)
+            print "command: %d set movement list: %s" % (channel, command)
 
     def on_close(self):
         clients.remove(self)
