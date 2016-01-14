@@ -90,8 +90,6 @@ class MovDatabase(object):
         print (movid)
         cursor.execute('''SELECT s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16, s17, s18, s19 FROM steps WHERE movid=? ORDER BY steppos ASC''', (movid,))
         movdata = cursor.fetchall()
-        #pref = "000"[len(str(movdata)):] + str(movdata) + "000"
-        #send_to_all_clients("006%s" % (pref))
         print(movdata)
         currentmovarray = movdata
         currentmovid = movid
@@ -278,7 +276,7 @@ class MovDatabase(object):
         print (data)
         print('Step query edited')
         self.db.commit()
-        self.setMovArray(id)
+        self.setMovArray(command)
 
     def closedb(self):
         db.close()
@@ -472,51 +470,51 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         self.write_message(message)
         channel = int(message[0:3])
         command = (message[3:])
-        if channel < 16:
-            m.servo_set(channel, int(command), 0)
+        if channel < 116:
+            m.servo_set(int(message[1:3]), int(command), 0)
             print "channel: %d angle: %d" % (channel, int(command))
-        if channel == 20:
+        if channel == 120:
             m.g_left_right( int(command), 0)
             print "channel: %d angle: %d" % (channel, int(command))
-        if channel == 30:
+        if channel == 130:
             self.write_message("reset")
             m.servo_reset()
             m.servo_reset_sliders()
-        if channel == 31:  # walk function from commandline hier gebleven
+        if channel == 131:  # walk function from commandline hier gebleven
             self.write_message("walking")
             m.servo_walk(100,1)
-        if channel == 32:  # walk function from commandline hier gebleven
+        if channel == 132:  # walk function from commandline hier gebleven
             self.write_message("walking")
             m.servo_walk(100,2)
-        if channel == 40:  # walk possition slider
+        if channel == 140:  # walk possition slider
             self.write_message("walking")
             m.servo_slider(int(command))
             print "step: %d position: %d" % (channel, int(command))
-        if channel == 50:  # Save current position
+        if channel == 150:  # Save current position
             self.write_message("saving current positions")
             db.editStepQuery(command)
             print "step: %d position: %s" % (channel, command)
-        if channel == 51:  # Add step 
+        if channel == 151:  # Add step 
             db.addStepQuery(command)
             self.write_message("Insert new step behind current posistion")
             print "command nr: %d value: %s" % (channel, command)
-        if channel == 52:  # Delete step
+        if channel == 152:  # Delete step
             db.delStepQuery(command)
             self.write_message("Delete current step")
             print "step: %d position: %d" % (channel, int(command))
-        if channel == 53:  # Add a new motion
+        if channel == 153:  # Add a new motion
             db.newMovQuery(command)
             self.write_message("Add a new motion")
             print "step: %d position: %s" % (channel, command)
-        if channel == 54:  # Delete current motion
+        if channel == 154:  # Delete current motion
             db.delMovQuery(int(command))
             self.write_message("Delete current motion")
             print "step: %d position: %d" % (channel, int(command))
-        if channel == 55:  # Populate movement list
+        if channel == 155:  # Populate movement list
             db.popMovQuery()
             self.write_message("Populating movmlist")
             print "step: %d position: %d" % (channel, int(command))
-        if channel == 56:  # Set movement list
+        if channel == 156:  # Set movement list
             db.setMovQuery(command)
             self.write_message("Setting movmlist")
             print "command: %d set movement list: %s" % (channel, command)

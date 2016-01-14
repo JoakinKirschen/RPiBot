@@ -98,17 +98,17 @@
         $("#slider0, #slider1, #slider2, #slider3, #slider4, #slider5, #slider6, #slider7, #slider8, #slider9, #slider20, #slider15").change(function() {
             var sVal = $(this).val();
             var sName = $(this).attr("id").substring(6);
-            var pref = "000".substring(sName.length).concat(sName);
+            var pref = "100".substring(0, (3 - sName.length)).concat(sName);
             sendmsg(pref, sVal);
             console.log("receiving: " + sVal + sName);
 
         });
         $('#rst_btn').click(function() {
-            sendmsg("030","0");
+            sendmsg("130","0");
             //$("#sliderA").roundSlider("disable");
         });
         // Step manipulation system
-        $('#svp_btn').click(function() {
+        $('#svstp_btn').click(function() {
             var sVal1 = $("#select-native-1").val();//movement select
             sVal1 = sVal1.substring(0, 3)
             var sVal2 = $("#sliderA").roundSlider('getValue');
@@ -121,8 +121,8 @@
                 suf = suf.concat("a".concat(text));
                 i++;
             }
-            console.log("receiving: " + suf);
-            sendmsg("050",suf);
+            console.log("sending: " + suf);
+            sendmsg("150",suf);
         });
         $('#addstp_btn').click(function() {
             var sVal1 = $("#select-native-1").val();//movement select
@@ -132,7 +132,7 @@
             console.log(sVal2);
             var sVal = sVal1 + sVal2
             if (sVal1 != ""){
-                sendmsg("051",sVal);
+                sendmsg("151",sVal);
         }
         });
         $('#delstp_btn').click(function() {
@@ -142,49 +142,43 @@
             sVal2 = "000".substring(sVal2.length).concat(sVal2);
             console.log(sVal2);
             var sVal = sVal1 + sVal2
-            if (sVal1 != ""){
-                sendmsg("052",sVal);
-        }
+            if (sVal1 != ""){sendmsg("152",sVal);}
         });
         // Create movement system
         $('#addm_btn').click(function() {
             var sVal = $("#mov_newname").val();
-            if (sVal != ""){
-                sendmsg("053",sVal);
-        }
+            if (sVal != ""){sendmsg("153",sVal);}
         });
         $('#delm_btn').click(function() {
             var sVal = $("#select-native-1").val();
             sVal = sVal.substring(0, 3)
-            if (sVal != ""){
-                sendmsg("054",sVal);
-        }
+            if (sVal != ""){sendmsg("154",sVal);}
         });
         $("#command").keyup(function(){
             var sVal = $(this).val();
-            if (sVal == "reset"){sendmsg("030","0")};
-            if (sVal == "walk"){sendmsg("031","0")};
-            if (sVal == "w2"){sendmsg("032","0")};
+            if (sVal == "reset"){sendmsg("130","0");}
+            if (sVal == "walk"){sendmsg("131","0");}
+            if (sVal == "w2"){sendmsg("132","0");}
         });
         $("#sliderA").roundSlider({
             max: 20,
             value: 0,
             drag: function (e) {
             console.log(e.value);
-            sendmsg("040", e.value)
+            sendmsg("140", e.value)
             },
             change: function (e) {
             console.log(e.value);
-            sendmsg("040", e.value)
+            sendmsg("140", e.value)
             }
         });
         $('#select-native-1').click(function(e) {
             var sVal = $(this).val();
             console.log(e.value);
-            sendmsg("056",sVal);
+            sendmsg("156",sVal);
             
         });
-        sendmsg("055","0");  //populate movement list
+        sendmsg("155","0");  //populate movement list
         });//]]>
     </script>
 
@@ -211,7 +205,7 @@
                 <option value="4">The 4th Option</option> -->
             </select>
     </form>
-        <input class="floating-box" type="button" id="svp_btn" value="Save Position" />
+        <input class="floating-box" type="button" id="svstp_btn" value="Save Position" />
         
         <div id="small-button">
         <input class="floating-box" type="button" id="addstp_btn" value="Insert Step" />
