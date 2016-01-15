@@ -145,6 +145,10 @@ class MovDatabase(object):
                 m.servo_set(d, pos, 0)
             d += 1
         #m.servo_set(currentmovpossition, newpos, 0)
+        cursor.execute('''SELECT * FROM movement WHERE id=? ''', (movid,))
+        movdata = cursor.fetchone()
+        print (movdata)
+        send_to_all_clients("005%s%s" % ("000"[len(str(currentmovid)):] + str(currentmovid), str(movdata[1])))
         print('Movement set')
         
         
@@ -430,6 +434,8 @@ class motion:
                 self.servo_set(d, pos, 0)
             d += 1
         currentmovpossition = nextpos
+        pref = "000"[len(str(len(array) - 1)):] + str(len(array) - 1) + "000"[len(str(nextpos)):] + str(nextpos)
+        send_to_all_clients("006%s" % (pref))
 
     def servo_reset(self):
 #        pwm.setPWMFreq(60)                       # Set frequency to 60 Hz
