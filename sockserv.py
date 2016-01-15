@@ -96,6 +96,15 @@ class MovDatabase(object):
         currentmovticks = len(movdata)
         print('Movement array set')
         
+    def getservopos(self, movid, servonr, pos):
+        servonr = int(servonr[1:])
+        cursor = self.db.cursor()
+        cursor.execute('''SELECT * FROM steps WHERE movid = ? AND steppos = ? ORDER BY steppos ASC''', (movid, pos,))
+        Ival = cursor.fetchone()
+        Ival = Ival[servonr + 2]
+        print (Ival) 
+        return Ival
+    
     def popMovQuery(self): #initialize the movement menu
         cursor = self.db.cursor()
         cursor.execute('''SELECT * FROM movement ORDER BY id ASC''')
@@ -113,21 +122,31 @@ class MovDatabase(object):
         if data:
             send_to_all_clients("005%s%s" % (str(data[0]), data[1]))
             self.setMovQuery(str(data[0]))
-        
             
-    def setMovQuery(self,command): #this also creates a new steptable!!!!!!!!!!!
+    def setMovQuery(self,command): #sets movlist 
         global currentmovpossition
+        global currentmovid
         movid = int(command[:3])
         cursor = self.db.cursor()
-        print (movid)
         cursor.execute('''SELECT * FROM steps WHERE movid=? ORDER BY steppos ASC''', (movid,))
         movdata = cursor.fetchall()
+        #newpos = self.getservopos(movid, "s1" ,0)
         pref = "000"[len(str(len(movdata) - 1)):] + str(len(movdata) - 1) + "000"
-        print (pref)
         send_to_all_clients("006%s" % (pref))
-        currentmovpossition = 0
-        print('Movement set')
         self.setMovArray(command)
+        currentmovid = movid
+        currentmovpossition = 0
+        array = currentmovarray
+        d = 0
+        while d < len(array[0]):
+            pos = array[0][d]
+            if str(pos) != "None":
+                print str(pos)
+                m.servo_set(d, pos, 0)
+            d += 1
+        #m.servo_set(currentmovpossition, newpos, 0)
+        print('Movement set')
+        
         
     def newMovQuery(self,movname): #this also creates a new steptable
         global currentmovpossition
@@ -253,7 +272,6 @@ class MovDatabase(object):
             print('Step deleted')
             self.setMovArray(command)
 
-
     def editStepQuery(self,command):
         movid = int(command[:3])
         id = (command[:3])
@@ -332,7 +350,6 @@ class motion:
     
     #ticks1 = servomov_ticks(servomov1)
     #ticks2 = servomov_ticks(servomov2)
-    
     def servo_update_slider(self, channel, curpos, newpos):
         if curpos != newpos:
             mes = "002" + motion.servoset[channel][0] + "%d" % (newpos)
@@ -363,8 +380,8 @@ class motion:
         self.servo_set(1, -pos, incr)
         self.servo_set(0, -pos, incr)
     
-# startpos #endpos #startime #steps
-# make loop with time range arrays to tell servos when to hit
+    # startpos #endpos #startime #steps
+    # make loop with time range arrays to tell servos when to hit
     def servo_walk(self, speed):
         array = currentmovarray
         ticks = currentmovticks
@@ -385,6 +402,7 @@ class motion:
                 time.sleep(0.1)
                 x += 1
             z += 1
+    
     def servo_slider(self, nextpos):
         global currentmovpossition
         b = 0
@@ -407,11 +425,11 @@ class motion:
         d = 0
         while d < len(array[nextpos]):
             pos = array[nextpos][d]
-            if pos != "None" and pos != array[currentpos][d]:
+            if str(pos) != "None" and pos != array[currentpos][d]:
                 print ("inloop")
                 self.servo_set(d, pos, 0)
-                currentmovpossition = nextpos
             d += 1
+        currentmovpossition = nextpos
 
     def servo_reset(self):
 #        pwm.setPWMFreq(60)                       # Set frequency to 60 Hz
