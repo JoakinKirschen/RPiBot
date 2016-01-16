@@ -17,9 +17,9 @@ pwm = PWM(0x42)
 
 # Globals
 currentmovarray = []
-currentmovid = 0
+currentmovid = "ns"
 currentmovticks = 0
-currentmovpossition = 0
+currentmovpossition = "ns"
 
 class MovDatabase(object):
     # Create a database in RAM
@@ -105,7 +105,9 @@ class MovDatabase(object):
         print (Ival) 
         return Ival
     
-    def popMovQuery(self): #initialize the movement menu
+    def setupNewClient(self, client): #initialize the movement menu
+        global currentmovid
+        global currentmovpossition
         cursor = self.db.cursor()
         cursor.execute('''SELECT * FROM movement ORDER BY id ASC''')
         #data = cursor.fetchone()
@@ -115,13 +117,21 @@ class MovDatabase(object):
             while len(id) != 3:
                 id = "0%s" % (id)
             name = row[1]
-            send_to_all_clients("003%s%s" % (id, name))
-        cursor.execute('''SELECT * FROM movement ORDER BY ROWID ASC LIMIT 1''')
-        data = cursor.fetchone()
+            send_to_evoking_client(client, "003%s%s" % (id, name))
         print (data)
-        if data:
-            send_to_all_clients("005%s%s" % (str(data[0]), data[1]))
-            self.setMovQuery(str(data[0]))
+        if len(data) != 0:
+            if currentmovid == "ns":
+                currentmovid = data[0][0]
+            cursor.execute('''SELECT * FROM movement WHERE id=? ''', (currentmovid,))
+            curdata = cursor.fetchone()
+            send_to_evoking_client(client, "005%s%s" % (str(curdata[0]), curdata[1]))
+            self.setMovQuery(str(curdata[0]))#Dit moet weg!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            if currentmovpossition == "ns":
+                currentmovpossition = 0
+            cursor.execute('''SELECT * FROM steps WHERE movid=? ORDER BY steppos ASC''', (currentmovid,))
+            movdata = cursor.fetchall()
+            pref = "000"[len(str(len(movdata) - 1)):] + str(len(movdata) - 1) + "000"[len(str(currentmovpossition)):] + str(currentmovpossition)
+            send_to_all_clients("006%s" % (pref))
             
     def setMovQuery(self,command): #sets movlist 
         global currentmovpossition
@@ -476,7 +486,9 @@ clients = []
 def send_to_all_clients(msg):
     for client in clients:
         client.write_message(msg)
-
+        
+def send_to_evoking_client(client, msg):
+        client.write_message(msg)
 
 class IndexHandler(tornado.web.RequestHandler):
     def get(self):
@@ -491,7 +503,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
     def on_message(self, message):
         print 'message received %s' % message
-        self.write_message(message)
+        #self.write_message(message)
         channel = int(message[0:3])
         command = (message[3:])
         if channel < 116:
@@ -535,7 +547,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             self.write_message("Delete current motion")
             print "step: %d position: %d" % (channel, int(command))
         if channel == 155:  # Populate movement list
-            db.popMovQuery()
+            db.setupNewClient(self)
             self.write_message("Populating movmlist")
             print "step: %d position: %d" % (channel, int(command))
         if channel == 156:  # Set movement list

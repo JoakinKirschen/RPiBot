@@ -27,6 +27,7 @@
 
       socket.onopen = function(){
         console.log("connected");
+        sendmsg("155","0");  //populate movement list
       };
 //exec code
 //002:update slider values
@@ -179,7 +180,7 @@
             sendmsg("156",sVal);
             
         });
-        sendmsg("155","0");  //populate movement list
+        
         });//]]>
     </script>
 
