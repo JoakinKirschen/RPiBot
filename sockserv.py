@@ -16,7 +16,7 @@ import os
 pwm = PWM(0x42)
 
 # Globals
-currentmovarray = []
+currentmovarray = "ns"
 currentmovid = "ns"
 currentmovticks = 0
 currentmovpossition = "ns"
@@ -108,6 +108,7 @@ class MovDatabase(object):
     def setupNewClient(self, client): #initialize the movement menu
         global currentmovid
         global currentmovpossition
+        global currentmovarray
         cursor = self.db.cursor()
         cursor.execute('''SELECT * FROM movement ORDER BY id ASC''')
         #data = cursor.fetchone()
@@ -124,14 +125,17 @@ class MovDatabase(object):
                 currentmovid = data[0][0]
             cursor.execute('''SELECT * FROM movement WHERE id=? ''', (currentmovid,))
             curdata = cursor.fetchone()
-            send_to_evoking_client(client, "005%s%s" % (str(curdata[0]), curdata[1]))
-            self.setMovQuery(str(curdata[0]))#Dit moet weg!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            send_to_evoking_client(client, "005%s%s" % ("000"[len(str(currentmovid)):] + str(currentmovid), str(curdata[1])))
+            #self.setMovQuery(str(curdata[0]))#Dit moet weg!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             if currentmovpossition == "ns":
                 currentmovpossition = 0
             cursor.execute('''SELECT * FROM steps WHERE movid=? ORDER BY steppos ASC''', (currentmovid,))
             movdata = cursor.fetchall()
             pref = "000"[len(str(len(movdata) - 1)):] + str(len(movdata) - 1) + "000"[len(str(currentmovpossition)):] + str(currentmovpossition)
             send_to_all_clients("006%s" % (pref))
+            if currentmovarray == "ns":
+                self.setMovArray(str(curdata[0]))
+            m.servo_update_all_sliders()
             
     def setMovQuery(self,command): #sets movlist 
         global currentmovpossition
@@ -246,9 +250,12 @@ class MovDatabase(object):
         while k >= steppos:
             cursor.execute('''UPDATE steps SET steppos = ? WHERE steppos = ? AND movid = ?''', ((k + 1), k, movid,))
             if k == steppos:
-                cursor.execute('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13 ) 
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
-                , (movid, steppos, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+                cursor.execute('''SELECT * FROM steps WHERE movid=? AND steppos=?''', (movid, (steppos - 1)))
+                posdata = cursor.fetchone()
+                cursor.execute('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16, s17, s18, s19 ) 
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
+                #, (movid, steppos, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+                , (posdata[1:]))
             k = k - 1
         print (data)
         self.db.commit()
@@ -364,6 +371,18 @@ class motion:
     
     #ticks1 = servomov_ticks(servomov1)
     #ticks2 = servomov_ticks(servomov2)
+    def servo_update_all_sliders(self):
+        array = currentmovarray
+        ticks = currentmovticks
+        currentpos = currentmovpossition
+        d = 0
+        while d < len(array[currentpos]):
+            pos = array[currentpos][d]
+            if str(pos) != "None":
+                mes = "002" + motion.servoset[d][0] + "%d" % (pos)
+                send_to_all_clients(mes)
+            d += 1
+    
     def servo_update_slider(self, channel, curpos, newpos):
         if curpos != newpos:
             mes = "002" + motion.servoset[channel][0] + "%d" % (newpos)
