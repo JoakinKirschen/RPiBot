@@ -6,20 +6,20 @@ body {
 	background:#fff;
 }
 .sliderframe {
-   margin: 1%;
-   padding: 1%;
+   margin: 10px;
+   padding: 10px;
    vertical-align: top;
 }
 .floating-box {
     vertical-align: top;
     display: inline-block;
-    margin:1%;
-    margin-right:1%;
+    margin:10px;
+    margin-right:10px;
     vertical-align: top;
 
 }
 #small-button { 
-    width: 48%;
+    width: 145px;
     display: inline-block;
     vertical-align: bottom;
     padding: 0px;
@@ -28,54 +28,54 @@ body {
 #btn_container {
     vertical-align: top;
     display: inline-block;
-    width: 30%;
+    width: 300px;
 }
 #mov_container {
     vertical-align: top;
     display: inline-block;
-    width: 25%;
-    margin: 1%;  
+    width: 300px;
+    margin: 10px;  
 }
 
 #reset {
-	width:100%px;
-	height: 5%;
+	width:1035px;
+	height: 50px;
 	margin:0 auto;
 	background:#ddd;
 }
 #body {
-	width:100%;
+	width:1035px;
 	margin:0 auto;
 	background:#ddd;
 }
 #header {
-	padding:1%;
+	padding:10px;
 	background:#fdd;
 }
 #content-1 {
 	float:left;
-	width:28%;
-	padding:1%;
+	width:290px;
+	padding:10px;
 	background:#bfb;
 }
 #content-2 {
 	float:right;
-	width:70%;
+	width:725px;
 }
 #content-2-1 {
 	float:left;
-	width:56%;
-	padding:1%;
+	width:400px;
+	padding:10px;
 	background:#ddf;
 }
 #content-2-2 {
 	float:right;
-	width:40%;
-	padding:1%;
+	width:285px;
+	padding:10px;
 	background:#dff;
 }
 #footer {
-	padding:1%;
+	padding:10px;
 	background:#ff9;
 }
 /* Easy clearing of floats (see http://positioniseverything.net/easyclearing.html) */

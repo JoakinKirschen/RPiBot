@@ -1,5 +1,6 @@
 <html>
   <head>
+    <meta content='width=device-width, initial-scale=1' name='viewport'/>
     <meta charset="UTF-8">
     <style>
         body { margin: 0px; padding: 0px; }
@@ -174,7 +175,7 @@
             sendmsg("140", e.value)
             }
         });
-        $('#select-native-1').click(function(e) {
+        $('#select-native-1').change(function(e) {
             var sVal = $(this).val();
             console.log(e.value);
             sendmsg("156",sVal);
@@ -196,6 +197,18 @@
     <input class="floating-box" type="button" id="rst_btn" value="Reset Button" />
     </div>
     <div class="floating-box" id="sliderA">
+    </div>
+    <div id="mov_container">
+        
+        <label for="slider00">Loop Amount:</label>
+        <input type="range" name="slider" id="slider00" value="1" min="1" max="100"  />
+        
+        <p>
+        <label for="slider01">Speed:</label>
+        <input type="range" name="slider" id="slider01" value="1" min="1" max="100"  />
+        </p>
+        <input class="floating-box" type="button" id="run_btn" value="Run" />
+        
     </div>
     <div id="mov_container">
     <form>
@@ -270,7 +283,7 @@
                     <input required type="text" id="command" title="<host>:<port>, default address is autodetected"/><br>
         <div id="container">
             <div id="remote">
-                <video id="remote-video" autoplay=""  style="border:1px solid" width="400" height="300">
+                <video id="remote-video" autoplay=""  style="border:1px solid" width="100%" height="auto">
                     Your browser does not support the video tag.
                 </video>
             </div>
