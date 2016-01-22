@@ -98,7 +98,7 @@
     <script type="text/javascript">
     //<![CDATA[
         $(window).load(function(){
-        $("#slider0, #slider1, #slider2, #slider3, #slider4, #slider5, #slider6, #slider7, #slider8, #slider9, #slider20, #slider15").change(function() {
+        $("#slider0, #slider1, #slider2, #slider3, #slider4, #slider5, #slider6, #slider7, #slider8, #slider9, #slider20, #slider15, #slider21, #slider22").change(function() {
             var sVal = $(this).val();
             var sName = $(this).attr("id").substring(6);
             var pref = "100".substring(0, (3 - sName.length)).concat(sName);
@@ -201,11 +201,11 @@
     <div id="mov_container">
         
         <label for="slider00">Loop Amount:</label>
-        <input type="range" name="slider" id="slider00" value="1" min="1" max="100"  />
+        <input type="range" name="slider" id="slider21" value="1" min="1" max="100"  />
         
         <p>
         <label for="slider01">Speed:</label>
-        <input type="range" name="slider" id="slider01" value="1" min="1" max="100"  />
+        <input type="range" name="slider" id="slider22" value="1" min="1" max="100"  />
         </p>
         <input class="floating-box" type="button" id="run_btn" value="Run" />
         

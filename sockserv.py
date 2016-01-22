@@ -20,6 +20,8 @@ currentmovarray = "ns"
 currentmovid = "ns"
 currentmovticks = 0
 currentmovpossition = "ns"
+loopamount = 1
+
 
 class MovDatabase(object):
     # Create a database in RAM
@@ -40,7 +42,8 @@ class MovDatabase(object):
         CREATE TABLE IF NOT EXISTS movement
         (
             id         INTEGER     PRIMARY KEY     AUTOINCREMENT,
-            name   TEXT
+            name       TEXT,
+            speed      INTEGER
         )''')
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS steps
@@ -165,6 +168,28 @@ class MovDatabase(object):
         send_to_all_clients("005%s%s" % ("000"[len(str(currentmovid)):] + str(currentmovid), str(movdata[1])))
         print('Movement set')
         
+                
+    def setMovSpeed(self,command): #sets movlist 
+        global currentmovpossition
+        global currentmovid
+        movid = int(command[:3])
+        cursor = self.db.cursor()
+        cursor.execute('''SELECT * FROM movement WHERE id=? ''', (movid,))
+        movdata = cursor.fetchone()
+        print (movdata)
+        send_to_all_clients("005%s%s" % ("000"[len(str(currentmovid)):] + str(currentmovid), str(movdata[1])))
+        print('Movement set')
+        
+    def getMovSpeed(self,command): #sets movlist 
+        global currentmovpossition
+        global currentmovid
+        movid = int(command[:3])
+        cursor = self.db.cursor()
+        cursor.execute('''SELECT * FROM movement WHERE id=? ''', (movid,))
+        movdata = cursor.fetchone()
+        print (movdata)
+        send_to_all_clients("005%s%s" % ("000"[len(str(currentmovid)):] + str(currentmovid), str(movdata[1])))
+        print('Movement set')
         
     def newMovQuery(self,movname): #this also creates a new steptable
         global currentmovpossition
@@ -337,7 +362,7 @@ class motion:
     servoset = [
         ["servo00", 368, 368],  # Foot right
         ["servo01", 380, 380],  # Foot left
-        ["servo02", 499, 499],  # Leg right bottom
+        ["servo02", 531, 531],  # Leg right bottom
         ["servo03", 479, 479],  # Leg left bottom
         ["servo04", 348, 348],  # Leg right mid
         ["servo05", 374, 374],  # Leg left mid
@@ -522,6 +547,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
     def on_message(self, message):
         print 'message received %s' % message
+        global loopamount
         #self.write_message(message)
         channel = int(message[0:3])
         command = (message[3:])
@@ -531,6 +557,12 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         if channel == 120:
             m.g_left_right( int(command), 0)
             print "channel: %d angle: %d" % (channel, int(command))
+        if channel == 121:
+            loopamount = int(command)
+            print "channel: %d loopamount: %d" % (channel, int(command))
+        if channel == 122:
+            db.setmovspeed( int(command), 0)
+            print "channel: %d speed: %d" % (channel, int(command))
         if channel == 130:
             self.write_message("reset")
             m.servo_reset()
