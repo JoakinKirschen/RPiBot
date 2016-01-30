@@ -73,6 +73,21 @@
             //$('select').selectmenu('refresh');
             $('#select-native-1').selectmenu('refresh');
         }
+        
+        if (execcode == "007")//update-reset movementlist
+        {
+            var newname = message.data.substring(3, 6) + " - " + message.data.substring(6);
+            //Creates the item
+            var itemval= '<option value="' + newname + '">' + newname + '</option>';
+            //Appends it within your select element
+            console.log(newname);
+            // $("#select-native-1").val(itemval).selectmenu("refresh");
+            // $("#select-native-1").value = newname;
+            $('#select-native-1 option[value="' + newname + '"]').attr('selected', true);
+            //$('select').selectmenu('refresh');
+            $('#select-native-1').selectmenu('refresh');
+        }
+        
         if (execcode == "006")//set roundslider range + value
         {
             var maxvalue = parseInt(message.data.substring(3, 6)); 
@@ -119,11 +134,13 @@
             var text = "";
             var suf = sVal1;
             var i = 0;
-            while (i < 10) {
+            while (i < 19) {
                 text = $("#slider".concat(i)).val();
                 suf = suf.concat("a".concat(text));
                 i++;
             }
+            text = $("#slider22").val();
+            suf = suf.concat("a".concat(text));
             console.log("sending: " + suf);
             sendmsg("150",suf);
         });
@@ -149,13 +166,22 @@
         });
         // Create movement system
         $('#addm_btn').click(function() {
-            var sVal = $("#mov_newname").val();
-            if (sVal != ""){sendmsg("153",sVal);}
+            var sName = $("#mov_newname").val();
+            if (sName != ""){sendmsg("153",sName);}
         });
         $('#delm_btn').click(function() {
             var sVal = $("#select-native-1").val();
             sVal = sVal.substring(0, 3)
             if (sVal != ""){sendmsg("154",sVal);}
+        });
+        $('#edditm_btn').click(function() {
+            var sId = $("#select-native-1").val();
+            sId = sId.substring(0, 3)
+            var sName = $("#mov_newname").val();
+            var sSpeed = $("#slider22").val();
+            sVal = sName.concat(";".concat(sSpeed));
+            sVal = sVal.concat(";".concat(sId));
+            if (sName != ""){sendmsg("157",sVal);}
         });
         $("#command").keyup(function(){
             var sVal = $(this).val();
@@ -205,7 +231,7 @@
         
         <p>
         <label for="slider01">Speed:</label>
-        <input type="range" name="slider" id="slider22" value="1" min="1" max="100"  />
+        <input type="range" name="slider" id="slider22" value="20" min="1" max="100"  />
         </p>
         <input class="floating-box" type="button" id="run_btn" value="Run" />
         
@@ -234,7 +260,13 @@
     <div id="mov_container">
          <label for="mov_newname">New movement name:</label>
         <input label="text" required type="text" id="mov_newname" title="<host>:<port>, default address is autodetected"/>
-        <input class="floating-box" type="button" id="addm_btn" value="Save Movement" />
+        <div id="small-button">
+        <input class="floating-box" type="button" id="addm_btn" value="Save" />
+        </div>
+        <div id="small-button">
+        <input class="floating-box" type="button" id="edditm_btn" value="Edit" />
+        </div>
+        
         <input class="floating-box" type="button" id="delm_btn" value="Delete Movement" />
     </div>
     <div id="header" class="cf"></div>

@@ -21,6 +21,8 @@ currentmovid = "ns"
 currentmovticks = 0
 currentmovpossition = "ns"
 loopamount = 1
+currentmovspeed = 20
+currentstepspeed = 20
 
 
 class MovDatabase(object):
@@ -43,7 +45,7 @@ class MovDatabase(object):
         (
             id         INTEGER     PRIMARY KEY     AUTOINCREMENT,
             name       TEXT,
-            speed      INTEGER
+            movspeed   INTEGER
         )''')
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS steps
@@ -70,6 +72,7 @@ class MovDatabase(object):
             s17        INTEGER,
             s18        INTEGER,
             s19        INTEGER,
+            stepspeed      INTEGER
             FOREIGN KEY(movid) REFERENCES movement(id)
         )''')
         cursor.execute('''SELECT * FROM movement ORDER BY id ASC''')
@@ -194,13 +197,13 @@ class MovDatabase(object):
     def newMovQuery(self,movname): #this also creates a new steptable
         global currentmovpossition
         cursor = self.db.cursor()
-        cursor.execute('''INSERT INTO movement (name) VALUES (?)''', (movname,))
+        cursor.execute('''INSERT INTO movement (name, movspeed) VALUES (?, ?)''', (movname, 20))
         cursor.execute('''SELECT id FROM movement WHERE name=?''', (movname,))
         movid = cursor.fetchone()
         movid = (movid[0])
-        cursor.execute('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13 ) 
+        cursor.execute('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, stepspeed ) 
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
-        , (movid, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+        , (movid, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20))
         m.servo_reset()
         m.servo_reset_sliders()
         #cursor.execute('''SELECT id, name  WHERE name=?''', (movname))
@@ -255,11 +258,18 @@ class MovDatabase(object):
             send_to_all_clients("005%s%s" % (str(data[0]), data[1]))
             self.setMovArray(id)
             
-    def editMovQuery(self,movid,newname): #steptable remains unchanged
+    def editMovQuery(self, command): #steptable remains unchanged
+        array = map((command[4:]).split(';'))
+        newname = array[0]
+        mspeed = int(array[1])
+        movid = int(array[2])
+        global movspeed
         cursor = db.cursor()
         # Insert user 1
-        cursor.execute('''UPDATE movement SET name=? WHERE id=? ''', (newname, movid,))
+        cursor.execute('''UPDATE movement SET name=?, movspeed=? WHERE id=? ''', (newname, mspeed, movid,))
         self.db.commit()
+        movspeed = mspeed
+        # send_to_all_clients("007%s%s" % (str(data[0]), data[1]))!!!!!!!!!!!!!!!!!!!!!!
         print('Movement query edited')
         
     def addStepQuery(self,command):
@@ -277,7 +287,7 @@ class MovDatabase(object):
             if k == steppos:
                 cursor.execute('''SELECT * FROM steps WHERE movid=? AND steppos=?''', (movid, (steppos - 1)))
                 posdata = cursor.fetchone()
-                cursor.execute('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16, s17, s18, s19 ) 
+                cursor.execute('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16, s17, s18, s19, stepspeed ) 
                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
                 #, (movid, steppos, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
                 , (posdata[1:]))
@@ -332,9 +342,19 @@ class MovDatabase(object):
         s8 = array[7]
         s9 = array[8]
         s10 = array[9]
+        s11 = array[10]
+        s12 = array[11]
+        s13 = array[12]
+        s14 = array[13]
+        s15 = array[14]
+        s16 = array[15]
+        s17 = array[16]
+        s18 = array[17]
+        s19 = array[18]
+        stepspeed = array[19]
         cursor = self.db.cursor()
-        cursor.execute('''UPDATE steps SET s1 = ?, s2 = ?, s3 = ?, s4 = ?, s5 = ?, s6 = ?, s7 = ?, s8 = ?, s9= ?, s10 = ?, s11 = ?, s12= ?, s13 = ? WHERE steppos = ? AND movid = ?''',
-        (s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, 0, 0, 0, currentmovpossition, movid,))
+        cursor.execute('''UPDATE steps SET s1 = ?, s2 = ?, s3 = ?, s4 = ?, s5 = ?, s6 = ?, s7 = ?, s8 = ?, s9= ?, s10 = ?, s11 = ?, s12= ?, s13 = ?, stepspeed = ?, WHERE steppos = ? AND movid = ?''',
+        (s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, 0, 0, 0, stepspeed, currentmovpossition, movid,))
         cursor.execute('''SELECT * FROM steps WHERE movid=?''', (movid,))
         data = cursor.fetchall()
         print (data)
@@ -603,6 +623,10 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             print "step: %d position: %d" % (channel, int(command))
         if channel == 156:  # Set movement list
             db.setMovQuery(command)
+            self.write_message("Setting movmlist")
+            print "command: %d set movement list: %s" % (channel, command)
+        if channel == 157:  # Set movement list
+            db.editMovQuery(command)
             self.write_message("Setting movmlist")
             print "command: %d set movement list: %s" % (channel, command)
 
