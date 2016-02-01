@@ -158,7 +158,7 @@ class MovDatabase(object):
         currentmovpossition = 0
         array = currentmovarray
         d = 0
-        while d < len(array[0]):
+        while d < len(array[0])-1:  # - 1 for the speedstep value
             pos = array[0][d]
             if str(pos) != "None":
                 print str(pos)
@@ -287,7 +287,9 @@ class MovDatabase(object):
             cursor.execute('''UPDATE steps SET steppos = ? WHERE steppos = ? AND movid = ?''', ((k + 1), k, movid,))
             if k == steppos:
                 cursor.execute('''SELECT * FROM steps WHERE movid=? AND steppos=?''', (movid, (steppos - 1)))
-                posdata = cursor.fetchone()
+                posdata = list(cursor.fetchone())
+                posdata[1] = movid
+                posdata[2] = steppos
                 cursor.execute('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16, s17, s18, s19, stepspeed ) 
                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
                 #, (movid, steppos, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
@@ -332,8 +334,9 @@ class MovDatabase(object):
     def editStepQuery(self,command):
         movid = int(command[:3])
         id = (command[:3])
-        array = map(int, (command[4:]).split('a'))
-        s1 = array[0]
+        sarray = (command[4:]).split(';')
+        array = map(int, (command[4:]).split(';'))
+        if sarray[0] != 'undefined': s1 = int(sarray[0])
         s2 = array[1]
         s3 = array[2]
         s4 = array[3]
@@ -422,7 +425,7 @@ class motion:
         ticks = currentmovticks
         currentpos = currentmovpossition
         d = 0
-        while d < len(array[currentpos]):
+        while d < len(motion.servoset):
             pos = array[currentpos][d]
             if str(pos) != "None":
                 mes = "002" + motion.servoset[d][0] + "%d" % (pos)

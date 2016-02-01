@@ -136,11 +136,11 @@
             var i = 0;
             while (i < 19) {
                 text = $("#slider".concat(i)).val();
-                suf = suf.concat("a".concat(text));
+                suf = suf.concat(";".concat(text));
                 i++;
             }
             text = $("#slider22").val();
-            suf = suf.concat("a".concat(text));
+            suf = suf.concat(";".concat(text));
             console.log("sending: " + suf);
             sendmsg("150",suf);
         });
