@@ -335,29 +335,28 @@ class MovDatabase(object):
         movid = int(command[:3])
         id = (command[:3])
         sarray = (command[4:]).split(';')
-        array = map(int, (command[4:]).split(';'))
         if sarray[0] != 'undefined': s1 = int(sarray[0])
-        s2 = array[1]
-        s3 = array[2]
-        s4 = array[3]
-        s5 = array[4]
-        s6 = array[5]
-        s7 = array[6]
-        s8 = array[7]
-        s9 = array[8]
-        s10 = array[9]
-        s11 = array[10]
-        s12 = array[11]
-        s13 = array[12]
-        s14 = array[13]
-        s15 = array[14]
-        s16 = array[15]
-        s17 = array[16]
-        s18 = array[17]
-        s19 = array[18]
-        stepspeed = array[19]
+        if sarray[1] != 'undefined': s2 = int(sarray[1])
+        if sarray[2] != 'undefined': s3 = int(sarray[2])
+        if sarray[3] != 'undefined': s4 = int(sarray[3])
+        if sarray[4] != 'undefined': s5 = int(sarray[4])
+        if sarray[5] != 'undefined': s6 = int(sarray[5])
+        if sarray[6] != 'undefined': s7 = int(sarray[6])
+        if sarray[7] != 'undefined': s8 = int(sarray[7])
+        if sarray[8] != 'undefined': s9 = int(sarray[8])
+        if sarray[9] != 'undefined': s10 = int(sarray[9])
+        if sarray[10] != 'undefined': s11 = int(sarray[10])
+        if sarray[11] != 'undefined': s12 = int(sarray[11])
+        if sarray[12] != 'undefined': s13 = int(sarray[12])
+        if sarray[13] != 'undefined': s14 = int(sarray[13])
+        if sarray[14] != 'undefined': s15 = int(sarray[14])
+        if sarray[15] != 'undefined': s16 = int(sarray[15])
+        if sarray[16] != 'undefined': s17 = int(sarray[16])
+        if sarray[17] != 'undefined': s18 = int(sarray[17])
+        if sarray[18] != 'undefined': s19 = int(sarray[18])
+        if sarray[19] != 'undefined': stepspeed = int(sarray[19])
         cursor = self.db.cursor()
-        cursor.execute('''UPDATE steps SET s1 = ?, s2 = ?, s3 = ?, s4 = ?, s5 = ?, s6 = ?, s7 = ?, s8 = ?, s9= ?, s10 = ?, s11 = ?, s12= ?, s13 = ?, stepspeed = ?, WHERE steppos = ? AND movid = ?''',
+        cursor.execute('''UPDATE steps SET s1 = ?, s2 = ?, s3 = ?, s4 = ?, s5 = ?, s6 = ?, s7 = ?, s8 = ?, s9= ?, s10 = ?, s11 = ?, s12= ?, s13 = ?, stepspeed = ? WHERE steppos = ? AND movid = ?''',
         (s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, 0, 0, 0, stepspeed, currentmovpossition, movid,))
         cursor.execute('''SELECT * FROM steps WHERE movid=?''', (movid,))
         data = cursor.fetchall()
