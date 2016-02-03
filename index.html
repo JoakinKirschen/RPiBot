@@ -42,8 +42,9 @@
         if (execcode == "002")//update slider values
         {
             console.log("Updating slider");
-            var inchannel =  parseInt(message.data.substring(8, 10));
-            var inposition =  parseInt(message.data.substring(10, 13));
+            var array = message.data.split(";");
+            var inchannel =  parseInt(array[1]);
+            var inposition =  parseInt(array[2]);
             console.log("receiving channel: " + inchannel + "  position:" + inposition);
             $( "#slider".concat(inchannel)).val(inposition).slider("refresh");
         } 
@@ -241,7 +242,7 @@
         
     </div>
     <div id="mov_container">
-    <form>
+    
         <label for="select-native-1">Movement options:</label>
             <select name="select-native-1" id="select-native-1" >
 <!--                <option value="1">The 1st Option</option>
@@ -249,8 +250,7 @@
                 <option value="3">The 3rd Option</option>
                 <option value="4">The 4th Option</option> -->
             </select>
-    </form>
-        <input class="floating-box" type="button" id="svstp_btn" value="Save Position" />
+    
         
         <div id="small-button">
         <input class="floating-box" type="button" id="addstp_btn" value="Insert Step" />
@@ -258,20 +258,20 @@
         <div id="small-button">
         <input class="floating-box" type="button" id="delstp_btn" value="Delete Step" />
         </div>
-        
+        <input class="floating-box" type="button" id="svstp_btn" value="Save Position" />
         
     </div>
     <div id="mov_container">
          <label for="mov_newname">New movement name:</label>
         <input label="text" required type="text" id="mov_newname" title="<host>:<port>, default address is autodetected"/>
         <div id="small-button">
-        <input class="floating-box" type="button" id="addm_btn" value="Save" />
+        <input class="floating-box" type="button" id="addm_btn" value="Add" />
         </div>
         <div id="small-button">
-        <input class="floating-box" type="button" id="edditm_btn" value="Edit" />
+        <input class="floating-box" type="button" id="delm_btn" value="Delete" />
         </div>
+        <input class="floating-box" type="button" id="edditm_btn" value="Edit" />
         
-        <input class="floating-box" type="button" id="delm_btn" value="Delete Movement" />
     </div>
     <div id="header" class="cf"></div>
     <div id="main" class="cf">

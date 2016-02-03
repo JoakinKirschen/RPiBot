@@ -437,24 +437,27 @@ class motion:
         while d < len(motion.servoset):
             pos = array[currentpos][d]
             if str(pos) != "None":
-                mes = "002" + motion.servoset[d][0] + "%d" % (pos)
+                mes = "002;" + str(d) + ";" + str(pos)
                 send_to_all_clients(mes)
             d += 1
     
-    def servo_update_slider(self, channel, curpos, newpos):
+    def servo_update_slider(self, sliderid, curpos, newpos):
         if curpos != newpos:
-            mes = "002" + motion.servoset[channel][0] + "%d" % (newpos)
+            mes = "002;" + str(sliderid) + ";" + str(newpos)
+            #mes = "002" + motion.servoset[channel][0] + "%d" % (newpos)
             send_to_all_clients(mes)
+            print 'slider set'
     
     def servo_reset_sliders(self):
         global currentmovpossition
-        send_to_all_clients("002" + "servo20" + "0")
+        send_to_all_clients("002;" + "20;" + "0")
         send_to_all_clients("006%s" % ("999000"))
         currentmovpossition = 0
         motion.walkpos = 0
     
     def servo_set(self, channel, pos, incr):
         pwm.setPWMFreq(60)
+        print channel
         curpos = motion.servoset[channel][2] - motion.servoset[channel][1]
         if incr == 1:
             motion.servoset[channel][2] = motion.servoset[channel][2] + pos
@@ -514,12 +517,14 @@ class motion:
             b = nextpos
             c = currentpos
         d = 0
-        while d < len(array[nextpos]):
+        while d < len(motion.servoset):
             pos = array[nextpos][d]
             if str(pos) != "None" and pos != array[currentpos][d]:
                 print ("inloop")
                 self.servo_set(d, pos, 0)
             d += 1
+        stepspeed = currentmovarray[nextpos][19]
+        send_to_all_clients("002;" + "22;" + str(stepspeed))
         currentmovpossition = nextpos
         pref = "000"[len(str(len(array) - 1)):] + str(len(array) - 1) + "000"[len(str(nextpos)):] + str(nextpos)
         send_to_all_clients("006%s" % (pref))
