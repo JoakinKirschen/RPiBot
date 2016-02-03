@@ -87,18 +87,15 @@ class MovDatabase(object):
         self.db.commit()
         cursor.close()
         
-    def setMovArray(self,command): #this also creates a new steptable
+    def setMovArray(self): #this also creates a new steptable
         global currentmovarray 
-        global currentmovid
         global currentmovticks
-        movid = int(command[:3])
+        movid = currentmovid
         cursor = self.db.cursor()
-        print (movid)
         cursor.execute('''SELECT s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16, s17, s18, s19, stepspeed FROM steps WHERE movid=? ORDER BY steppos ASC''', (movid,))
         movdata = cursor.fetchall()
         print(movdata)
         currentmovarray = movdata
-        currentmovid = movid
         currentmovticks = len(movdata)
         print('Movement array set')
         
@@ -140,7 +137,7 @@ class MovDatabase(object):
             pref = "000"[len(str(len(movdata) - 1)):] + str(len(movdata) - 1) + "000"[len(str(currentmovpossition)):] + str(currentmovpossition)
             send_to_all_clients("006%s" % (pref))
             if currentmovarray == "ns":
-                self.setMovArray(str(curdata[0]))
+                self.setMovArray()
             m.servo_update_all_sliders()
             
     def setMovQuery(self,command): #sets movlist 
@@ -153,8 +150,8 @@ class MovDatabase(object):
         #newpos = self.getservopos(movid, "s1" ,0)
         pref = "000"[len(str(len(movdata) - 1)):] + str(len(movdata) - 1) + "000"
         send_to_all_clients("006%s" % (pref))
-        self.setMovArray(command)
         currentmovid = movid
+        self.setMovArray()
         currentmovpossition = 0
         array = currentmovarray
         d = 0
@@ -194,48 +191,59 @@ class MovDatabase(object):
         send_to_all_clients("005%s%s" % ("000"[len(str(currentmovid)):] + str(currentmovid), str(movdata[1])))
         print('Movement set')
         
-    def newMovQuery(self,movname): #this also creates a new steptable
+    def updateMovMenu(self): #this also creates a new steptable
         global currentmovpossition
+        global currentmovid
         cursor = self.db.cursor()
-        cursor.execute('''INSERT INTO movement (name, movspeed) VALUES (?, ?)''', (movname, 20))
-        cursor.execute('''SELECT id FROM movement WHERE name=?''', (movname,))
-        movid = cursor.fetchone()
-        movid = (movid[0])
-        cursor.execute('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, stepspeed ) 
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
-        , (movid, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20))
-        m.servo_reset()
-        m.servo_reset_sliders()
-        #cursor.execute('''SELECT id, name  WHERE name=?''', (movname))
         cursor.execute('''SELECT * FROM movement ORDER BY id ASC''')
-        #data = cursor.fetchone()
         data = cursor.fetchall()
         i = 0
-        for row in data:
+        #for row in data:
         # Remove movement from list
-            id = str(row[0])
-            while len(id) != 3:
-                id = "0" + id
-            name = row[1]
-            send_to_all_clients("004%s%s" % (id, name))
+        #    id = str(row[0])
+        #    while len(id) != 3:
+        #        id = "0" + id
+        #    name = row[1]
+        #    send_to_all_clients("004%s%s" % (id, name))
+        send_to_all_clients("008")
         for row in data:
         # Add to movement list
             i = i + 1
-            id = str(row[0])
-            while len(id) != 3:
-                id = "0%s" % (id)
+            sID = str(row[0])
+            iID = row[0]
+            while len(sID) != 3:
+                sID = "0%s" % (sID)
             name = row[1]
-            send_to_all_clients("003%s%s" % (id, name))
-            if len(data) == i:
-                send_to_all_clients("005%s%s" % (id, name))
-        print(data)
+            send_to_all_clients("003%s%s" % (sID, name))
+            # Set value to current mov id
+            if iID == currentmovid:
+                send_to_all_clients("005%s%s" % (sID, name))
+        
+    def newMovQuery(self,movname): #this also creates a new steptable
+        global currentmovpossition
+        global currentmovid
+        cursor = self.db.cursor()
+        cursor.execute('''INSERT INTO movement (name, movspeed) VALUES (?, ?)''', (movname, 20))
+        cursor.execute('''SELECT id FROM movement WHERE id=?''', ((cursor.lastrowid),))
+        movid = cursor.fetchone()
+        movid = (movid[0])
+        currentmovid = movid
+        print(movid)
+        cursor.execute('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, stepspeed ) 
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
+        , (movid, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20))
+        self.db.commit()
+        m.servo_reset()
+        m.servo_reset_sliders()
+        #cursor.execute('''SELECT id, name  WHERE name=?''', (movname))
+        self.updateMovMenu()
         send_to_all_clients("006%s" % ("000000"))
         currentmovpossition = 0
         print('New movement created')
-        self.db.commit()
-        self.setMovArray(id)
+        self.setMovArray()
         
     def delMovQuery(self,movid): #must remove coresponding steptable
+        global currentmovid
         cursor = self.db.cursor()
         cursor.execute('''SELECT * FROM movement ORDER BY id ASC''')
         #data = cursor.fetchone()
@@ -256,20 +264,22 @@ class MovDatabase(object):
             cursor.execute('''SELECT * FROM movement ORDER BY ROWID ASC LIMIT 1''')
             data = cursor.fetchone()
             send_to_all_clients("005%s%s" % (str(data[0]), data[1]))
-            self.setMovArray(id)
+            self.setMovArray()
+            currentmovid = data[0]
             
     def editMovQuery(self, command): #steptable remains unchanged
+        global movspeed
         array = command.split(';')
         print (array)
         newname = array[0]
         mspeed = int(array[1])
         movid = int(array[2])
-        global movspeed
         cursor = self.db.cursor()
         # Insert user 1
         cursor.execute('''UPDATE movement SET name=?, movspeed=? WHERE id=? ''', (newname, mspeed, movid,))
         self.db.commit()
         movspeed = mspeed
+        self.updateMovMenu()
         # send_to_all_clients("007%s%s" % (str(data[0]), data[1]))!!!!!!!!!!!!!!!!!!!!!!
         print('Movement query edited')
         
@@ -303,7 +313,7 @@ class MovDatabase(object):
         send_to_all_clients("006%s" % (pref))
         currentmovpossition = steppos
         print('New step inserted')
-        self.setMovArray(command)
+        self.setMovArray()
 
     def delStepQuery(self,command):
         global currentmovpossition
@@ -329,7 +339,7 @@ class MovDatabase(object):
             send_to_all_clients("006%s" % (pref))
             currentmovpossition = (steppos - 1)
             print('Step deleted')
-            self.setMovArray(command)
+            self.setMovArray()
 
     def editStepQuery(self,command):
         movid = int(command[:3])
@@ -363,7 +373,7 @@ class MovDatabase(object):
         print (data)
         print('Step query edited')
         self.db.commit()
-        self.setMovArray(command)
+        self.setMovArray()
 
     def closedb(self):
         db.close()

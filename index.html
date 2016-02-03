@@ -60,6 +60,10 @@
             var name = message.data.substring(3, 6) + " - " + message.data.substring(6);
             $("#select-native-1").find('option[value="' + name + '"]').remove();
         }
+        if (execcode == "008")//remove from movement menu
+        {
+            $("#select-native-1").empty();
+        }
         if (execcode == "005")//set movement to menuitem
         {
             var newname = message.data.substring(3, 6) + " - " + message.data.substring(6);
