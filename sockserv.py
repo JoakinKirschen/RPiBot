@@ -21,8 +21,8 @@ currentmovid = "ns"
 currentmovticks = 0
 currentmovpossition = "ns"
 loopamount = 1
-currentmovspeed = 20
-currentstepspeed = 20
+currentmovspeed = "ns"
+currentstepspeed = "ns"
 
 
 class MovDatabase(object):
@@ -112,6 +112,8 @@ class MovDatabase(object):
         global currentmovid
         global currentmovpossition
         global currentmovarray
+        global currentstepspeed
+        global currentmovspeed
         cursor = self.db.cursor()
         cursor.execute('''SELECT * FROM movement ORDER BY id ASC''')
         #data = cursor.fetchone()
@@ -129,16 +131,20 @@ class MovDatabase(object):
             cursor.execute('''SELECT * FROM movement WHERE id=? ''', (currentmovid,))
             curdata = cursor.fetchone()
             send_to_evoking_client(client, "005%s%s" % ("000"[len(str(currentmovid)):] + str(currentmovid), str(curdata[1])))
-            #self.setMovQuery(str(curdata[0]))#Dit moet weg!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             if currentmovpossition == "ns":
                 currentmovpossition = 0
+            currentmovspeed = curdata[2]
             cursor.execute('''SELECT * FROM steps WHERE movid=? ORDER BY steppos ASC''', (currentmovid,))
             movdata = cursor.fetchall()
             pref = "000"[len(str(len(movdata) - 1)):] + str(len(movdata) - 1) + "000"[len(str(currentmovpossition)):] + str(currentmovpossition)
             send_to_all_clients("006%s" % (pref))
             if currentmovarray == "ns":
                 self.setMovArray()
+            currentstepspeed = currentmovarray[currentmovpossition][19]
             m.servo_update_all_sliders()
+            print(movdata[0])
+            send_to_all_clients("002;" + "22;" + str(currentstepspeed))
+            
             
     def setMovQuery(self,command): #sets movlist 
         global currentmovpossition
@@ -154,6 +160,7 @@ class MovDatabase(object):
         self.setMovArray()
         currentmovpossition = 0
         array = currentmovarray
+        currentstepspeed = array[0][19]
         d = 0
         while d < len(array[0])-1:  # - 1 for the speedstep value
             pos = array[0][d]
@@ -162,8 +169,10 @@ class MovDatabase(object):
                 m.servo_set(d, pos, 0)
             d += 1
         #m.servo_set(currentmovpossition, newpos, 0)
+        send_to_all_clients("002;" + "22;" + str(currentstepspeed))
         cursor.execute('''SELECT * FROM movement WHERE id=? ''', (movid,))
         movdata = cursor.fetchone()
+        currentmovspeed = movdata[2]
         print (movdata)
         send_to_all_clients("005%s%s" % ("000"[len(str(currentmovid)):] + str(currentmovid), str(movdata[1])))
         print('Movement set')
@@ -222,12 +231,14 @@ class MovDatabase(object):
     def newMovQuery(self,movname): #this also creates a new steptable
         global currentmovpossition
         global currentmovid
+        global currentmovspeed
         cursor = self.db.cursor()
         cursor.execute('''INSERT INTO movement (name, movspeed) VALUES (?, ?)''', (movname, 20))
         cursor.execute('''SELECT id FROM movement WHERE id=?''', ((cursor.lastrowid),))
         movid = cursor.fetchone()
         movid = (movid[0])
         currentmovid = movid
+        currentmovspeed = 20
         print(movid)
         cursor.execute('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, stepspeed ) 
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
@@ -239,11 +250,15 @@ class MovDatabase(object):
         self.updateMovMenu()
         send_to_all_clients("006%s" % ("000000"))
         currentmovpossition = 0
+        currentstepspeed = 20
         print('New movement created')
         self.setMovArray()
         
     def delMovQuery(self,movid): #must remove coresponding steptable
         global currentmovid
+        global currentmovspeed
+        global currentstepspeed
+        global currentmovpossition
         cursor = self.db.cursor()
         cursor.execute('''SELECT * FROM movement ORDER BY id ASC''')
         #data = cursor.fetchone()
@@ -264,9 +279,12 @@ class MovDatabase(object):
             cursor.execute('''SELECT * FROM movement ORDER BY ROWID ASC LIMIT 1''')
             data = cursor.fetchone()
             send_to_all_clients("005%s%s" % (str(data[0]), data[1]))
-            self.setMovArray()
             currentmovid = data[0]
-            
+            self.setMovArray()
+            currentstepspeed = currentmovarray[0][19]
+            currentmovspeed = data[2]
+            currentmovpossition = 0
+            m.servo_update_all_sliders()
     def editMovQuery(self, command): #steptable remains unchanged
         global movspeed
         array = command.split(';')
@@ -284,9 +302,11 @@ class MovDatabase(object):
         print('Movement query edited')
         
     def addStepQuery(self,command):
-        global currentmovpossition 
-        movid = int(command[:3])
-        steppos = (int(command[3:]) + 1)
+        global currentmovpossition
+        #movid = int(command[:3])
+        #steppos = (int(command[3:]) + 1)
+        movid = currentmovid
+        steppos = (currentmovpossition + 1)
         cursor = self.db.cursor()
         cursor.execute('''SELECT * FROM steps WHERE movid=?''', (movid,))
         data = cursor.fetchall()
@@ -317,8 +337,11 @@ class MovDatabase(object):
 
     def delStepQuery(self,command):
         global currentmovpossition
-        movid = int(command[:3])
-        steppos = int(command[3:])
+        global currentstepspeed
+        #movid = int(command[:3])
+        #steppos = int(command[3:])
+        movid = currentmovid
+        steppos = currentmovpossition
         cursor = self.db.cursor()
         cursor.execute('''SELECT * FROM steps WHERE movid=?''', (movid,))
         data = cursor.fetchall()
@@ -338,6 +361,7 @@ class MovDatabase(object):
             pref = id + "000"[len(str(steppos - 1)):] + str(steppos - 1)
             send_to_all_clients("006%s" % (pref))
             currentmovpossition = (steppos - 1)
+            #currentstepspeed = 
             print('Step deleted')
             self.setMovArray()
 
@@ -397,12 +421,12 @@ class motion:
         ["servo01", 380, 380],  # Foot left
         ["servo02", 531, 531],  # Leg right bottom
         ["servo03", 479, 479],  # Leg left bottom
-        ["servo04", 348, 348],  # Leg right mid
-        ["servo05", 374, 374],  # Leg left mid
+        ["servo04", 388, 388],  # Leg right mid
+        ["servo05", 334, 334],  # Leg left mid
         ["servo06", 528, 528],  # Leg right top
         ["servo07", 260, 260],  # Leg left top
-        ["servo08", 380, 380],  # Hip right
-        ["servo09", 485, 485],  # Hip left
+        ["servo08", 364, 364],  # Hip right
+        ["servo09", 469, 469],  # Hip left
         ["servo10", 375, 375],
         ["servo11", 375, 375],
         ["servo12", 375, 375],
@@ -440,6 +464,7 @@ class motion:
                 mes = "002;" + str(d) + ";" + str(pos)
                 send_to_all_clients(mes)
             d += 1
+        send_to_all_clients("002;" + "22;" + str(currentstepspeed))
     
     def servo_update_slider(self, sliderid, curpos, newpos):
         if curpos != newpos:
