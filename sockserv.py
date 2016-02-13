@@ -10,6 +10,7 @@ import time
 import math
 import sqlite3
 import os
+import signal
  
 
 # Initialise the PWM device using the default address
@@ -251,6 +252,7 @@ class MovDatabase(object):
         send_to_all_clients("006%s" % ("000000"))
         currentmovpossition = 0
         currentstepspeed = 20
+        send_to_all_clients("002;" + "22;" + str(currentstepspeed))
         print('New movement created')
         self.setMovArray()
         
@@ -587,6 +589,8 @@ db = MovDatabase()
 from tornado.options import define, options
 define("port", default=8090, help="run on the given port", type=int)
 
+_SHUTDOWN_TIMEOUT = 5
+
 clients = []
 
 
@@ -596,6 +600,43 @@ def send_to_all_clients(msg):
         
 def send_to_evoking_client(client, msg):
         client.write_message(msg)
+        
+def make_safely_shutdown(server):
+    io_loop = server.io_loop or ioloop.IOLoop.instance()
+    def stop_handler(*args, **keywords):
+        def shutdown():
+            server.stop() # this may still disconnection backlogs at a low probability
+            deadline = time.time() + _SHUTDOWN_TIMEOUT
+            def stop_loop():
+                now = time.time()
+                if now < deadline and (io_loop._callbacks or io_loop._timeouts):
+                    io_loop.add_timeout(now + 1, stop_loop)
+                else:
+                    io_loop.stop()
+            stop_loop()
+        io_loop.add_callback(shutdown)
+    signal.signal(signal.SIGQUIT, stop_handler) # SIGQUIT is send by our supervisord to stop this server.
+    signal.signal(signal.SIGTERM, stop_handler) # SIGTERM is send by Ctrl+C or supervisord's default.
+    signal.signal(signal.SIGINT, stop_handler)
+    
+def shutdown():
+    #logging.info('Stopping http server')
+    httpServer.stop()
+
+    #logging.info('Will shutdown in %s seconds ...', MAX_WAIT_SECONDS_BEFORE_SHUTDOWN)
+    io_loop = tornado.ioloop.IOLoop.instance()
+
+    deadline = time.time() + 3
+
+    def stop_loop():
+        now = time.time()
+        if now < deadline and (io_loop._callbacks or io_loop._timeouts):
+            io_loop.add_timeout(now + 1, stop_loop)
+        else:
+            io_loop.stop()
+            #logging.info('Shutdown')
+    stop_loop()
+        
 
 class IndexHandler(tornado.web.RequestHandler):
     def get(self):
@@ -636,6 +677,9 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         if channel == 132:  # walk function from commandline hier gebleven
             self.write_message("walking")
             m.servo_walk(100,2)
+        if channel == 135:  # shutdown server
+            self.write_message("shutting down the server")
+            shutdown()
         if channel == 140:  # walk possition slider
             self.write_message("walking")
             m.servo_slider(int(command))
@@ -688,7 +732,12 @@ if __name__ == "__main__":
             (r"/css/(.*)", tornado.web.StaticFileHandler, {"path": "./css"},)
         ]
     )
+    
+    global httpServer
+    
     httpServer = tornado.httpserver.HTTPServer(app)
     httpServer.listen(options.port)
     print "Listening on port:", options.port
+    make_safely_shutdown(httpServer)
     tornado.ioloop.IOLoop.instance().start()
+    

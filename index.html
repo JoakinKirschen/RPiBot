@@ -130,6 +130,10 @@
             sendmsg("130","0");
             //$("#sliderA").roundSlider("disable");
         });
+        $('#shtdwn_btn').click(function() {
+            sendmsg("135","0");
+            //$("#sliderA").roundSlider("disable");
+        });
         // Step manipulation system
         $('#svstp_btn').click(function() {
             var sVal1 = $("#select-native-1").val();//movement select
@@ -225,6 +229,7 @@
   <body>
     <div id="body">
     <div id="reset">
+    <input class="floating-box" type="button" id="shtdwn_btn" value="Stop Server" />
     <input class="floating-box" type="button" id="rst_btn" value="Reset Button" />
     </div>
     <div class="floating-box" id="sliderA">
