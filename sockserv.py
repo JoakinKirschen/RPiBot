@@ -145,6 +145,7 @@ class MovDatabase(object):
             m.servo_update_all_sliders()
             print(movdata[0])
             send_to_all_clients("002;" + "22;" + str(currentstepspeed))
+            send_to_all_clients("002;" + "21;" + str(loopamount))
             
             
     def setMovQuery(self,command): #sets movlist 
@@ -523,6 +524,38 @@ class motion:
                 time.sleep(0.1)
                 x += 1
             z += 1
+            
+    def run(self):
+        array = currentmovarray
+        ticks = currentmovticks
+        speed = currentmovspeed
+        ticks = 10
+        print (array)
+        z = 0
+        while z < loopamount:
+            y = 0
+            while y < len(array):
+                x = 0
+                while x < ticks: 
+                    temparray = []
+                    seq = 0
+                    while seq < (len(array[y])-1):
+                        if array[y][seq] == array[y + 1][seq]:
+                            temparray[seq] = array[y][seq]
+                        elif array[y][seq] == "None":
+                            temparray[seq] = array[y + 1][seq]
+                        elif array[y + 1][seq] == "None":
+                            temparray[seq] = array[y][seq]
+                        else: 
+                            temparray[seq] = array[y][seq] - (array[y][seq]-array[y+1]) / ticks * x
+                        seq += 1
+                    for row in temparray:
+                        self.servo_set(y, pos, 1)
+                    x += 1
+                    time.sleep(0.1)
+                    print ("running")
+                y += 1
+            z += 1
     
     def servo_slider(self, nextpos):
         global currentmovpossition
@@ -663,6 +696,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             print "channel: %d angle: %d" % (channel, int(command))
         if channel == 121:
             loopamount = int(command)
+            send_to_all_clients("002;" + "21;" + str(loopamount))
             print "channel: %d loopamount: %d" % (channel, int(command))
 #        if channel == 122:
 #            db.setmovspeed( int(command), 0)
@@ -677,6 +711,9 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         if channel == 132:  # walk function from commandline hier gebleven
             self.write_message("walking")
             m.servo_walk(100,2)
+        if channel == 133:  # walk function from commandline hier gebleven
+            self.write_message("walking")
+            m.run()
         if channel == 135:  # shutdown server
             self.write_message("shutting down the server")
             shutdown()
@@ -740,4 +777,3 @@ if __name__ == "__main__":
     print "Listening on port:", options.port
     make_safely_shutdown(httpServer)
     tornado.ioloop.IOLoop.instance().start()
-    
