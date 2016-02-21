@@ -534,26 +534,31 @@ class motion:
         z = 0
         while z < loopamount:
             y = 0
-            while y < len(array):
-                x = 0
-                while x < ticks: 
+            while y < (len(array)-1):
+                x = 1
+                while x < ticks:
                     temparray = []
                     seq = 0
                     while seq < (len(array[y])-1):
                         if array[y][seq] == array[y + 1][seq]:
-                            temparray[seq] = array[y][seq]
-                        elif array[y][seq] == "None":
-                            temparray[seq] = array[y + 1][seq]
-                        elif array[y + 1][seq] == "None":
-                            temparray[seq] = array[y][seq]
+                            temparray.append(array[y][seq])
+                        elif array[y][seq] is not None:
+                            temparray.append(array[y + 1][seq])
+                        elif array[y + 1][seq] is not None:
+                            temparray.append(array[y][seq])
                         else: 
-                            temparray[seq] = array[y][seq] - (array[y][seq]-array[y+1]) / ticks * x
+                            temparray.append(int(array[y][seq]-((array[y][seq]-array[y+1][seq])*((ticks-x)/ticks))))
                         seq += 1
-                    for row in temparray:
-                        self.servo_set(y, pos, 1)
+                    i = 0
+                    while i < len(temparray):
+                        print (i)
+                        if temparray[i] is not None:
+                            pos = temparray[i]
+                            self.servo_set(y, pos, 1)
+			i += 1
                     x += 1
                     time.sleep(0.1)
-                    print ("running")
+                    print (temparray)
                 y += 1
             z += 1
     
