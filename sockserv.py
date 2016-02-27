@@ -542,9 +542,9 @@ class motion:
                     while seq < (len(array[y])-1):
                         if array[y][seq] == array[y + 1][seq]:
                             temparray.append(array[y][seq])
-                        elif array[y][seq] is not None:
+                        elif array[y][seq] is None:
                             temparray.append(array[y + 1][seq])
-                        elif array[y + 1][seq] is not None:
+                        elif array[y + 1][seq] is None:
                             temparray.append(array[y][seq])
                         else: 
                             temparray.append(int(array[y][seq]-((array[y][seq]-array[y+1][seq])*((ticks-x)/ticks))))
@@ -554,7 +554,7 @@ class motion:
                         print (i)
                         if temparray[i] is not None:
                             pos = temparray[i]
-                            self.servo_set(y, pos, 1)
+                            self.servo_set(i, pos, 0)
 			i += 1
                     x += 1
                     time.sleep(0.1)
