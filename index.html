@@ -95,8 +95,11 @@
         
         if (execcode == "006")//set roundslider range + value
         {
-            var maxvalue = parseInt(message.data.substring(3, 6)); 
-            var setvalue = parseInt(message.data.substring(6));
+            //var maxvalue = parseInt(message.data.substring(3, 6)); 
+            //var setvalue = parseInt(message.data.substring(6));
+            var array = message.data.split(";");
+            var maxvalue =  parseInt(array[1]);
+            var setvalue =  parseInt(array[2]);
             //Creates the item
             if (maxvalue != 999) {$("#sliderA").roundSlider("option", "max", maxvalue );}
             if (setvalue != 999) {$("#sliderA").roundSlider("option", "value", setvalue );}

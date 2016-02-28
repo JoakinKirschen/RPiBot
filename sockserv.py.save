@@ -137,8 +137,8 @@ class MovDatabase(object):
             currentmovspeed = curdata[2]
             cursor.execute('''SELECT * FROM steps WHERE movid=? ORDER BY steppos ASC''', (currentmovid,))
             movdata = cursor.fetchall()
-            #pref = "000"[len(str(len(movdata) - 1)):] + str(len(movdata) - 1) + "000"[len(str(currentmovpossition)):] + str(currentmovpossition)
-            send_to_all_clients("006;" + str(len(movdata) - 1) + ";" + str(currentmovpossition))
+            pref = "000"[len(str(len(movdata) - 1)):] + str(len(movdata) - 1) + "000"[len(str(currentmovpossition)):] + str(currentmovpossition)
+            send_to_all_clients("006%s" % (pref))
             if currentmovarray == "ns":
                 self.setMovArray()
             currentstepspeed = currentmovarray[currentmovpossition][19]
@@ -157,7 +157,7 @@ class MovDatabase(object):
         movdata = cursor.fetchall()
         #newpos = self.getservopos(movid, "s1" ,0)
         pref = "000"[len(str(len(movdata) - 1)):] + str(len(movdata) - 1) + "000"
-        send_to_all_clients("006;" + str(len(movdata) - 1) + ";000")
+        send_to_all_clients("006%s" % (pref))
         currentmovid = movid
         self.setMovArray()
         currentmovpossition = 0
@@ -250,7 +250,7 @@ class MovDatabase(object):
         m.servo_reset_sliders()
         #cursor.execute('''SELECT id, name  WHERE name=?''', (movname))
         self.updateMovMenu()
-        send_to_all_clients("006;000;000")
+        send_to_all_clients("006%s" % ("000000"))
         currentmovpossition = 0
         currentstepspeed = 20
         send_to_all_clients("002;" + "22;" + str(currentstepspeed))
@@ -330,10 +330,10 @@ class MovDatabase(object):
             k = k - 1
         print (data)
         self.db.commit()
-        #id = "000"[len(str(i - 1)):] + str(i - 1)
+        id = "000"[len(str(i - 1)):] + str(i - 1)
         #pref = "000"[len(str(i)):] + str(i) + "000"[len(str(steppos)):] + str(steppos)
-        #pref = id + "000"[len(str(steppos)):] + str(steppos)
-        send_to_all_clients("006;" + str(i - 1) + ";" + str(steppos))
+        pref = id + "000"[len(str(steppos)):] + str(steppos)
+        send_to_all_clients("006%s" % (pref))
         currentmovpossition = steppos
         print('New step inserted')
         self.setMovArray()
@@ -360,9 +360,9 @@ class MovDatabase(object):
                 j = j + 1
             print (data)
             self.db.commit()
-            #id = "000"[len(str(i - 2)):] + str(i - 2)
-            #pref = id + "000"[len(str(steppos - 1)):] + str(steppos - 1)
-            send_to_all_clients("006;" + str(i - 2) + ";" + str(steppos - 1))
+            id = "000"[len(str(i - 2)):] + str(i - 2)
+            pref = id + "000"[len(str(steppos - 1)):] + str(steppos - 1)
+            send_to_all_clients("006%s" % (pref))
             currentmovpossition = (steppos - 1)
             #currentstepspeed = 
             print('Step deleted')
@@ -478,8 +478,8 @@ class motion:
     
     def servo_reset_sliders(self):
         global currentmovpossition
-        send_to_all_clients("002;20;0")
-        send_to_all_clients("006;999;0")
+        send_to_all_clients("002;" + "20;" + "0")
+        send_to_all_clients("006%s" % ("999000"))
         currentmovpossition = 0
         motion.walkpos = 0
     
@@ -530,14 +530,14 @@ class motion:
         array = currentmovarray
         ticks = currentmovticks
         speed = currentmovspeed
-        devider = 10
+        ticks = 10
         print (array)
         z = 0
         while z < loopamount:
             y = 0
             while y < (len(array)-1):
                 x = 0
-                while x <= devider:
+                while x <= ticks:
                     temparray = []
                     seq = 0
                     while seq < (len(array[y])-1):
@@ -548,7 +548,7 @@ class motion:
                         elif array[y + 1][seq] is None:
                             temparray.append(array[y][seq])
                         else: 
-                            temparray.append(int(array[y][seq]-((array[y][seq]-array[y+1][seq])*(x/devider))))
+                            temparray.append(int(array[y][seq]-((array[y][seq]-array[y+1][seq])*(x/ticks))))
                         seq += 1
                     i = 0
                     while i < len(temparray):
@@ -556,13 +556,12 @@ class motion:
                         if temparray[i] is not None:
                             pos = temparray[i]
                             self.servo_set(i, pos, 0)
-                        i += 1
+			i += 1
+                    currentmovpossition = x
                     x += 1
                     time.sleep(0.1)
                     print (temparray)
                 y += 1
-                send_to_all_clients("006;" + str(ticks - 1) + ";" + str(y))
-                currentmovpossition = y
             z += 1
     
     def servo_slider(self, nextpos):
@@ -594,8 +593,8 @@ class motion:
         stepspeed = currentmovarray[nextpos][19]
         send_to_all_clients("002;" + "22;" + str(stepspeed))
         currentmovpossition = nextpos
-        #pref = "000"[len(str(len(array) - 1)):] + str(len(array) - 1) + "000"[len(str(nextpos)):] + str(nextpos)
-        send_to_all_clients("006;" + str(len(array) - 1) + ";" + str(nextpos))
+        pref = "000"[len(str(len(array) - 1)):] + str(len(array) - 1) + "000"[len(str(nextpos)):] + str(nextpos)
+        send_to_all_clients("006%s" % (pref))
 
     def servo_reset(self):
 #        pwm.setPWMFreq(60)                       # Set frequency to 60 Hz
