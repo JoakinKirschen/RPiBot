@@ -526,7 +526,7 @@ class motion:
             z += 1
             
     def run(self):
-	global currentmovpossition
+        global currentmovpossition
         array = currentmovarray
         ticks = currentmovticks
         speed = currentmovspeed
@@ -534,7 +534,9 @@ class motion:
         print (array)
         z = 0
         while z < loopamount:
+            currentmovpossition = 0
             y = 0
+            send_to_all_clients("006;" + str(ticks - 1) + ";" + str(y))
             while y < (len(array)-1):
                 x = 0
                 while x <= devider:
