@@ -420,16 +420,16 @@ class motion:
     walkpos = 0
 
     servoset = [
-        ["servo00", 368, 368],  # Foot right
-        ["servo01", 380, 380],  # Foot left
-        ["servo02", 531, 531],  # Leg right bottom
-        ["servo03", 479, 479],  # Leg left bottom
-        ["servo04", 388, 388],  # Leg right mid
-        ["servo05", 334, 334],  # Leg left mid
-        ["servo06", 528, 528],  # Leg right top
-        ["servo07", 260, 260],  # Leg left top
-        ["servo08", 364, 364],  # Hip right
-        ["servo09", 469, 469],  # Hip left
+        ["servo00", 380, 380],  # Foot right
+        ["servo01", 382, 382],  # Foot left
+        ["servo02", 559, 559],  # Leg right bottom
+        ["servo03", 414, 414],  # Leg left bottom
+        ["servo04", 544, 544],  # Leg right mid
+        ["servo05", 238, 238],  # Leg left mid
+        ["servo06", 376, 376],  # Leg right top
+        ["servo07", 520, 520],  # Leg left top
+        ["servo08", 362, 362],  # Hip right
+        ["servo09", 350, 350],  # Hip left
         ["servo10", 375, 375],
         ["servo11", 375, 375],
         ["servo12", 375, 375],
