@@ -422,12 +422,12 @@ class motion:
     servoset = [
         ["servo00", 380, 380],  # Foot right
         ["servo01", 382, 382],  # Foot left
-        ["servo02", 559, 559],  # Leg right bottom
-        ["servo03", 414, 414],  # Leg left bottom
+        ["servo02", 391, 391],  # Leg right bottom
+        ["servo03", 268, 268],  # Leg left bottom
         ["servo04", 544, 544],  # Leg right mid
         ["servo05", 238, 238],  # Leg left mid
-        ["servo06", 376, 376],  # Leg right top
-        ["servo07", 520, 520],  # Leg left top
+        ["servo06", 360, 360],  # Leg right top
+        ["servo07", 536, 536],  # Leg left top
         ["servo08", 362, 362],  # Hip right
         ["servo09", 350, 350],  # Hip left
         ["servo10", 375, 375],
@@ -537,20 +537,30 @@ class motion:
             currentmovpossition = 0
             y = 0
             send_to_all_clients("006;" + str(ticks - 1) + ";" + str(y))
-            while y < (len(array)-1):
+            while y < (len(array)):
                 x = 0
                 while x <= devider:
                     temparray = []
                     seq = 0
-                    while seq < (len(array[y])-1):
-                        if array[y][seq] == array[y + 1][seq]:
-                            temparray.append(array[y][seq])
-                        elif array[y][seq] is None:
-                            temparray.append(array[y + 1][seq])
-                        elif array[y + 1][seq] is None:
-                            temparray.append(array[y][seq])
-                        else: 
-                            temparray.append(int(array[y][seq]-((array[y][seq]-array[y+1][seq])*(x/devider))))
+                    while seq < (len(array[y]))-1:
+                        if y == (len(array))-1:
+                            if array[y][seq] == array[0][seq]:
+                                temparray.append(array[y][seq])
+                            elif array[y][seq] is None:
+                                temparray.append(array[0][seq])
+                            elif array[0][seq] is None:
+                                temparray.append(array[y][seq])
+                            else: 
+                                temparray.append(int(array[y][seq]-((array[y][seq]-array[0][seq])*(x/devider))))
+                        else:
+                            if array[y][seq] == array[y + 1][seq]:
+                                temparray.append(array[y][seq])
+                            elif array[y][seq] is None:
+                                temparray.append(array[y + 1][seq])
+                            elif array[y + 1][seq] is None:
+                                temparray.append(array[y][seq])
+                            else: 
+                                temparray.append(int(array[y][seq]-((array[y][seq]-array[y+1][seq])*(x/devider))))
                         seq += 1
                     i = 0
                     while i < len(temparray):
@@ -563,8 +573,12 @@ class motion:
                     time.sleep(0.1)
                     print (temparray)
                 y += 1
-                send_to_all_clients("006;" + str(ticks - 1) + ";" + str(y))
-                currentmovpossition = y
+                if y == (len(array)):
+                    send_to_all_clients("006;" + str(ticks - 1) + ";" + str(0))
+                    currentmovpossition = 0
+                else:
+                    send_to_all_clients("006;" + str(ticks - 1) + ";" + str(y))
+                    currentmovpossition = y
             z += 1
     
     def servo_slider(self, nextpos):
