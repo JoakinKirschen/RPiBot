@@ -24,7 +24,7 @@
     </script>
     <script>
 
-      var socket = new WebSocket("ws://192.168.0.152:8090/ws");
+      var socket = new WebSocket("ws://192.168.0.236:8090/ws");
 
       socket.onopen = function(){
         console.log("connected");
@@ -161,7 +161,7 @@
             sendmsg("150",suf);
         });
         $('#addstp_btn').click(function() {
-            var sVal1 = $("#select-native-1").val();//movement select
+            var sVal1 = $("#select-native-1").val();//movement select test
             sVal1 = sVal1.substring(0, 3)
             var sVal2 = $("#sliderA").roundSlider('getValue');//step possition
             sVal2 = "000".substring(sVal2.length).concat(sVal2);
