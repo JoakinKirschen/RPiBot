@@ -15,15 +15,19 @@ import signal
 
 # Initialise the PWM device using the default address
 pwm = PWM(0x42)
+pwm.setPWMFreq(60)
 
 # Globals
 currentmovarray = "ns"
+currentmovarraycalc = [] #array used by loop with calculated values
+currenttimingarray = []
 currentmovid = "ns"
 currentmovticks = 0
 currentmovpossition = "ns"
 loopamount = 1
 currentmovspeed = "ns"
 currentstepspeed = "ns"
+uptime = 0
 
 
 class MovDatabase(object):
@@ -416,9 +420,10 @@ class motion:
     
     
     #Servoname, Calibrate, Current_pos
+    
+    
 
     walkpos = 0
-
     servoset = [
         ["servo00", 380, 380],  # Foot right
         ["servo01", 382, 382],  # Foot left
@@ -525,18 +530,82 @@ class motion:
                 x += 1
             z += 1
             
+#    def run(self):
+#        global currentmovpossition
+#        array = currentmovarray
+#        ticks = currentmovticks
+#        speed = currentmovspeed
+#        devider = 20
+#        print (array)
+#        z = 0
+#        while z < loopamount:
+#            currentmovpossition = 0
+#            y = 0
+#            #send_to_all_clients("006;" + str(ticks - 1) + ";" + str(y))
+#            while y < (len(array)):
+#                x = 0
+#                while x <= devider:
+#                    temparray = []
+#                    seq = 0
+#                    while seq < (len(array[y]))-1:
+#                        if y == (len(array))-1:
+#                            if array[y][seq] == array[0][seq]:
+#                                temparray.append(array[y][seq])
+#                            elif array[y][seq] is None:
+#                                temparray.append(array[0][seq])
+#                            elif array[0][seq] is None:
+#                                temparray.append(array[y][seq])
+#                            else: 
+#                                temparray.append(int(array[y][seq]-((array[y][seq]-array[0][seq])*(x/devider))))
+#                        else:
+#                            if array[y][seq] == array[y + 1][seq]:
+#                                temparray.append(array[y][seq])
+#                            elif array[y][seq] is None:
+#                                temparray.append(array[y + 1][seq])
+#                            elif array[y + 1][seq] is None:
+#                                temparray.append(array[y][seq])
+#                            else: 
+#                                temparray.append(int(array[y][seq]-((array[y][seq]-array[y+1][seq])*(x/devider))))
+#                        seq += 1
+#                    i = 0
+#                    while i < len(temparray):
+#                        print (i)
+#                        if temparray[i] is not None:
+#                            pos = temparray[i]
+#                            self.servo_set(i, pos, 0)
+#                        i += 1
+#                    x += 1
+#                    time.sleep(0.02)
+#                    print (temparray)
+#                y += 1
+#                if y == (len(array)):
+#                    send_to_all_clients("006;" + str(ticks - 1) + ";" + str(0))
+#                    currentmovpossition = 0
+#                else:
+#                    send_to_all_clients("006;" + str(ticks - 1) + ";" + str(y))
+#                    currentmovpossition = y
+#            z += 1
+
     def run(self):
         global currentmovpossition
+        global uptime
+        global initime
+        global currentmovarraycalc
+        global currenttimingarray
+        initime = uptime
+        currentmovarraycalc = []
+        currenttimingarray = []
         array = currentmovarray
         ticks = currentmovticks
         speed = currentmovspeed
-        devider = 10
+        devider = 20
+        timer = 0
         print (array)
         z = 0
         while z < loopamount:
             currentmovpossition = 0
             y = 0
-            send_to_all_clients("006;" + str(ticks - 1) + ";" + str(y))
+            #send_to_all_clients("006;" + str(ticks - 1) + ";" + str(y))
             while y < (len(array)):
                 x = 0
                 while x <= devider:
@@ -562,16 +631,22 @@ class motion:
                             else: 
                                 temparray.append(int(array[y][seq]-((array[y][seq]-array[y+1][seq])*(x/devider))))
                         seq += 1
+    
                     i = 0
-                    while i < len(temparray):
-                        print (i)
-                        if temparray[i] is not None:
-                            pos = temparray[i]
-                            self.servo_set(i, pos, 0)
-                        i += 1
+                    timer = timer + array[y][(len(array[y]))-1]/devider
+                    print (timer)
+                    currentmovarraycalc.append(temparray)
+                    currenttimingarray.append(timer)
+#                    while i < len(temparray):
+#                        print (i)
+#                        if temparray[i] is not None:
+#                            pos = temparray[i]
+#                            self.servo_set(i, pos, 0)
+#                        i += 1
                     x += 1
-                    time.sleep(0.1)
-                    print (temparray)
+#                    time.sleep(0.02)
+#                    print (temparray)
+#                    print (currentmovarraycalc)
                 y += 1
                 if y == (len(array)):
                     send_to_all_clients("006;" + str(ticks - 1) + ";" + str(0))
@@ -580,6 +655,7 @@ class motion:
                     send_to_all_clients("006;" + str(ticks - 1) + ";" + str(y))
                     currentmovpossition = y
             z += 1
+            print (currenttimingarray)
     
     def servo_slider(self, nextpos):
         global currentmovpossition
@@ -650,6 +726,28 @@ _SHUTDOWN_TIMEOUT = 5
 
 clients = []
 
+def robotUpdate():
+    
+    
+    global uptime
+    uptime = uptime + 100
+#    print uptime 
+#    global robot
+#    global isClosing
+    
+#    if isClosing:
+#        tornado.ioloop.IOLoop.instance().stop()
+#        return
+        
+#    if robot == None:
+        
+#        if not robotConnectionResultQueue.empty():
+            
+#            robot = robotConnectionResultQueue.get()
+        
+#    else:
+                
+#        robot.update()
 
 def send_to_all_clients(msg):
     for client in clients:
@@ -704,6 +802,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
     def open(self):
         print 'new connection'
         send_to_all_clients("new client")
+        self.stream.set_nodelay(True)
         clients.append(self)
 
     def on_message(self, message):
@@ -798,6 +897,13 @@ if __name__ == "__main__":
     
     httpServer = tornado.httpserver.HTTPServer(app)
     httpServer.listen(options.port)
+    
+    res = 10
+    robotPeriodicCallback = tornado.ioloop.PeriodicCallback( 
+        robotUpdate, res, io_loop=tornado.ioloop.IOLoop.instance() )
+    robotPeriodicCallback.start()
+    
+    
     print "Listening on port:", options.port
     make_safely_shutdown(httpServer)
     tornado.ioloop.IOLoop.instance().start()
