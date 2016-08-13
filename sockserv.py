@@ -14,8 +14,11 @@ import signal
  
 
 # Initialise the PWM device using the default address
-pwm = PWM(0x42)
-pwm.setPWMFreq(60)
+pwm1 = PWM(0x42)        #device1 16 servos
+pwm1.setPWMFreq(60)
+pwm2 = PWM(0x44)        #device2 4 servos
+pwm2.setPWMFreq(60)
+
 
 # Globals
 currentmovarray = "ns"
@@ -24,6 +27,9 @@ currenttimingarray = []
 currentmovid = "ns"
 currentmovticks = 0
 currentmovpossition = "ns"
+currentmovinitime = 0
+currentmovendtime = 0
+currentservo = 0
 loopamount = 1
 currentmovspeed = "ns"
 currentstepspeed = "ns"
@@ -77,6 +83,7 @@ class MovDatabase(object):
             s17        INTEGER,
             s18        INTEGER,
             s19        INTEGER,
+            s20        INTEGER,
             stepspeed      INTEGER,
             FOREIGN KEY(movid) REFERENCES movement(id)
         )''')
@@ -97,7 +104,7 @@ class MovDatabase(object):
         global currentmovticks
         movid = currentmovid
         cursor = self.db.cursor()
-        cursor.execute('''SELECT s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16, s17, s18, s19, stepspeed FROM steps WHERE movid=? ORDER BY steppos ASC''', (movid,))
+        cursor.execute('''SELECT s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16, s17, s18, s19, s20, stepspeed FROM steps WHERE movid=? ORDER BY steppos ASC''', (movid,))
         movdata = cursor.fetchall()
         print(movdata)
         currentmovarray = movdata
@@ -145,7 +152,7 @@ class MovDatabase(object):
             send_to_all_clients("006;" + str(len(movdata) - 1) + ";" + str(currentmovpossition))
             if currentmovarray == "ns":
                 self.setMovArray()
-            currentstepspeed = currentmovarray[currentmovpossition][19]
+            currentstepspeed = currentmovarray[currentmovpossition][20]
             m.servo_update_all_sliders()
             print(movdata[0])
             send_to_all_clients("002;" + "22;" + str(currentstepspeed))
@@ -166,7 +173,7 @@ class MovDatabase(object):
         self.setMovArray()
         currentmovpossition = 0
         array = currentmovarray
-        currentstepspeed = array[0][19]
+        currentstepspeed = array[0][20]
         d = 0
         while d < len(array[0])-1:  # - 1 for the speedstep value
             pos = array[0][d]
@@ -288,7 +295,7 @@ class MovDatabase(object):
             send_to_all_clients("005%s%s" % (str(data[0]), data[1]))
             currentmovid = data[0]
             self.setMovArray()
-            currentstepspeed = currentmovarray[0][19]
+            currentstepspeed = currentmovarray[0][20]
             currentmovspeed = data[2]
             currentmovpossition = 0
             m.servo_update_all_sliders()
@@ -327,8 +334,8 @@ class MovDatabase(object):
                 posdata = list(cursor.fetchone())
                 posdata[1] = movid
                 posdata[2] = steppos
-                cursor.execute('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16, s17, s18, s19, stepspeed ) 
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
+                cursor.execute('''INSERT INTO steps (movid, steppos, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16, s17, s18, s19, s20, stepspeed ) 
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
                 #, (movid, steppos, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
                 , (posdata[1:]))
             k = k - 1
@@ -395,7 +402,8 @@ class MovDatabase(object):
         if sarray[16] != 'undefined': s17 = int(sarray[16])
         if sarray[17] != 'undefined': s18 = int(sarray[17])
         if sarray[18] != 'undefined': s19 = int(sarray[18])
-        if sarray[19] != 'undefined': stepspeed = int(sarray[19])
+        if sarray[19] != 'undefined': s20 = int(sarray[19])
+        if sarray[20] != 'undefined': stepspeed = int(sarray[20])
         cursor = self.db.cursor()
         cursor.execute('''UPDATE steps SET s1 = ?, s2 = ?, s3 = ?, s4 = ?, s5 = ?, s6 = ?, s7 = ?, s8 = ?, s9= ?, s10 = ?, s11 = ?, s12= ?, s13 = ?, stepspeed = ? WHERE steppos = ? AND movid = ?''',
         (s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, 0, 0, 0, stepspeed, currentmovpossition, movid,))
@@ -440,7 +448,11 @@ class motion:
         ["servo12", 375, 375],
         ["servo13", 375, 375],
         ["servo14", 375, 375],
-        ["servo15", 304, 304]  # Rotate camera
+        ["servo15", 304, 304],  # Rotate camera
+        ["servo16", 375, 375],
+        ["servo17", 375, 375],
+        ["servo18", 375, 375],
+        ["servo19", 375, 375]  
     ]
     
     servoMin = 150  # Min pulse length out of 4096
@@ -489,7 +501,7 @@ class motion:
         motion.walkpos = 0
     
     def servo_set(self, channel, pos, incr):
-        pwm.setPWMFreq(60)
+#        pwm1.setPWMFreq(60)
         print channel
         curpos = motion.servoset[channel][2] - motion.servoset[channel][1]
         if incr == 1:
@@ -497,7 +509,10 @@ class motion:
         else:
             motion.servoset[channel][2] = motion.servoset[channel][1] + pos
         newpos = motion.servoset[channel][2] - motion.servoset[channel][1]
-        pwm.setPWM(channel, 0, int(motion.servoset[channel][2]))
+        if channel < 16:
+            pwm1.setPWM(channel, 0, int(motion.servoset[channel][2]))
+        else:
+            pwm2.setPWM(channel, 0, int(motion.servoset[channel][2]))
         self.servo_update_slider(channel, curpos, newpos)
         print "Servo: %d - Position %d" % (channel, motion.servoset[channel][2])
     
@@ -589,30 +604,35 @@ class motion:
     def run(self):
         global currentmovpossition
         global uptime
-        global initime
+        global currentmovinitime
+        global currentmovendtime
         global currentmovarraycalc
         global currenttimingarray
-        initime = uptime
+        print uptime
+        currentmovinitime = uptime
         currentmovarraycalc = []
         currenttimingarray = []
         array = currentmovarray
         ticks = currentmovticks
         speed = currentmovspeed
-        devider = 20
+#        divider = 20
         timer = 0
-        print (array)
+#        print (array)
         z = 0
-        while z < loopamount:
+        while z < loopamount: # amount of loops 
             currentmovpossition = 0
             y = 0
             #send_to_all_clients("006;" + str(ticks - 1) + ";" + str(y))
             while y < (len(array)):
+                divider = array[y][20]/2
                 x = 0
-                while x <= devider:
+#                while x <= devider: #stop using fixed devider make chunks of 0.2 ms to inject in loop
+                while x < divider:
+#                    print divider
                     temparray = []
                     seq = 0
                     while seq < (len(array[y]))-1:
-                        if y == (len(array))-1:
+                        if y == (len(array))-1: #this sets the movement after the last possition to reset the loop to possition 0
                             if array[y][seq] == array[0][seq]:
                                 temparray.append(array[y][seq])
                             elif array[y][seq] is None:
@@ -620,7 +640,7 @@ class motion:
                             elif array[0][seq] is None:
                                 temparray.append(array[y][seq])
                             else: 
-                                temparray.append(int(array[y][seq]-((array[y][seq]-array[0][seq])*(x/devider))))
+                                temparray.append(int(array[y][seq]-((array[y][seq]-array[0][seq])*(x/divider))))
                         else:
                             if array[y][seq] == array[y + 1][seq]:
                                 temparray.append(array[y][seq])
@@ -629,14 +649,14 @@ class motion:
                             elif array[y + 1][seq] is None:
                                 temparray.append(array[y][seq])
                             else: 
-                                temparray.append(int(array[y][seq]-((array[y][seq]-array[y+1][seq])*(x/devider))))
+                                temparray.append(int(array[y][seq]-((array[y][seq]-array[y+1][seq])*(x/divider))))
                         seq += 1
     
                     i = 0
-                    timer = timer + array[y][(len(array[y]))-1]/devider
-                    print (timer)
+                    timer = timer + 0.2 #array[y][(len(array[y]))-1]/divider
+#                    print (timer)
                     currentmovarraycalc.append(temparray)
-                    currenttimingarray.append(timer)
+                    currenttimingarray.append(timer) #creates an array of value x 0.2s 
 #                    while i < len(temparray):
 #                        print (i)
 #                        if temparray[i] is not None:
@@ -648,14 +668,17 @@ class motion:
 #                    print (temparray)
 #                    print (currentmovarraycalc)
                 y += 1
-                if y == (len(array)):
-                    send_to_all_clients("006;" + str(ticks - 1) + ";" + str(0))
-                    currentmovpossition = 0
-                else:
-                    send_to_all_clients("006;" + str(ticks - 1) + ";" + str(y))
-                    currentmovpossition = y
+#                if y == (len(array)):
+#                    send_to_all_clients("006;" + str(ticks - 1) + ";" + str(0))
+#                    currentmovpossition = 0
+#                else:
+#                    send_to_all_clients("006;" + str(ticks - 1) + ";" + str(y))
+#                    currentmovpossition = y
             z += 1
-            print (currenttimingarray)
+        currentmovendtime = currentmovinitime + timer
+        print currentmovendtime
+#            print (currenttimingarray)
+#            print (currentmovarraycalc)
     
     def servo_slider(self, nextpos):
         global currentmovpossition
@@ -683,7 +706,7 @@ class motion:
                 print ("inloop")
                 self.servo_set(d, pos, 0)
             d += 1
-        stepspeed = currentmovarray[nextpos][19]
+        stepspeed = currentmovarray[nextpos][20]
         send_to_all_clients("002;" + "22;" + str(stepspeed))
         currentmovpossition = nextpos
         #pref = "000"[len(str(len(array) - 1)):] + str(len(array) - 1) + "000"[len(str(nextpos)):] + str(nextpos)
@@ -727,11 +750,25 @@ _SHUTDOWN_TIMEOUT = 5
 clients = []
 
 def robotUpdate():
-    
-    
+    global currentmovpossition
     global uptime
-    uptime = uptime + 100
-#    print uptime 
+    global currentmovinitime
+    global currentmovendtime
+    global currentmovarraycalc
+    global currenttimingarray
+    global currentservo
+    uptime = uptime + 0.01
+#    m.servo_set(currentservo, 20, 0)
+    if uptime >= currentmovinitime and uptime < currentmovendtime:
+        index = currenttimingarray.index(uptime - currentmovinitime)
+        print index
+        
+        currentservo = currentservo + 1
+        if currentservo == 19:
+            currentservo = 0
+    
+#    print uptime
+#    print currentservo
 #    global robot
 #    global isClosing
     
@@ -903,7 +940,9 @@ if __name__ == "__main__":
         robotUpdate, res, io_loop=tornado.ioloop.IOLoop.instance() )
     robotPeriodicCallback.start()
     
-    
     print "Listening on port:", options.port
     make_safely_shutdown(httpServer)
     tornado.ioloop.IOLoop.instance().start()
+    
+    
+
