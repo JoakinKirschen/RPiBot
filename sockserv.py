@@ -602,36 +602,40 @@ class motion:
 #            z += 1
 
     def run(self):
-        global currentmovpossition
+#        global currentmovpossition
         global uptime
         global currentmovinitime
         global currentmovendtime
         global currentmovarraycalc
         global currenttimingarray
-        print uptime
+#        print uptime
         currentmovinitime = uptime
-        currentmovarraycalc = []
-        currenttimingarray = []
+        currentmovarraycalc = [] 
+        currenttimingarray = [] # array of 
         array = currentmovarray
-        ticks = currentmovticks
+#        ticks = currentmovticks
         speed = currentmovspeed
 #        divider = 20
         timer = 0
 #        print (array)
         z = 0
         while z < loopamount: # amount of loops 
-            currentmovpossition = 0
             y = 0
             #send_to_all_clients("006;" + str(ticks - 1) + ";" + str(y))
             while y < (len(array)):
+                if z == loopamount - 1:
+                    w = 0
+                else:
+                    w = 1
                 divider = array[y][20]/2
+                tempmovpossition = y
                 x = 0
-#                while x <= devider: #stop using fixed devider make chunks of 0.2 ms to inject in loop
-                while x < divider:
+#                while x <= devider: #stop using fixed devider make chunks of 10ms to inject in loop
+                while w <= divider:
 #                    print divider
                     temparray = []
                     seq = 0
-                    while seq < (len(array[y]))-1:
+                    while seq < (len(array[y])):
                         if y == (len(array))-1: #this sets the movement after the last possition to reset the loop to possition 0
                             if array[y][seq] == array[0][seq]:
                                 temparray.append(array[y][seq])
@@ -651,11 +655,16 @@ class motion:
                             else: 
                                 temparray.append(int(array[y][seq]-((array[y][seq]-array[y+1][seq])*(x/divider))))
                         seq += 1
-    
                     i = 0
-                    timer = timer + 0.2 #array[y][(len(array[y]))-1]/divider
+                    timer = timer + 200 #array[y][(len(array[y]))-1]/divider
 #                    print (timer)
-                    currentmovarraycalc.append(temparray)
+                    if y == (len(array)):
+#                       send_to_all_clients("006;" + str(ticks - 1) + ";" + str(0))
+                        tempmovpossition = 0
+                    else:
+#                        send_to_all_clients("006;" + str(ticks - 1) + ";" + str(y))
+                        tempmovpossition = y
+                    currentmovarraycalc.append([temparray,tempmovpossition])
                     currenttimingarray.append(timer) #creates an array of value x 0.2s 
 #                    while i < len(temparray):
 #                        print (i)
@@ -664,21 +673,18 @@ class motion:
 #                            self.servo_set(i, pos, 0)
 #                        i += 1
                     x += 1
+                    w += 1
 #                    time.sleep(0.02)
 #                    print (temparray)
 #                    print (currentmovarraycalc)
                 y += 1
-#                if y == (len(array)):
-#                    send_to_all_clients("006;" + str(ticks - 1) + ";" + str(0))
-#                    currentmovpossition = 0
-#                else:
-#                    send_to_all_clients("006;" + str(ticks - 1) + ";" + str(y))
-#                    currentmovpossition = y
             z += 1
         currentmovendtime = currentmovinitime + timer
-        print currentmovendtime
-#            print (currenttimingarray)
-#            print (currentmovarraycalc)
+#        myInt = 10
+#        currenttimingarray = [x / myInt for x in currenttimingarray]
+#        print currentmovendtime
+#        print (currenttimingarray)
+        print (currentmovarraycalc)
     
     def servo_slider(self, nextpos):
         global currentmovpossition
@@ -757,12 +763,16 @@ def robotUpdate():
     global currentmovarraycalc
     global currenttimingarray
     global currentservo
-    uptime = uptime + 0.01
-#    m.servo_set(currentservo, 20, 0)
+    uptime = uptime + 10
+    supdate = 200 #ms
     if uptime >= currentmovinitime and uptime < currentmovendtime:
-        index = currenttimingarray.index(uptime - currentmovinitime)
-        print index
-        
+        index = currenttimingarray.index(int(math.floor((uptime - currentmovinitime)/supdate))*supdate + supdate)
+#        print currentmovarraycalc[index][currentservo]
+        if str(currentmovarraycalc[index][0][currentservo]) != "None":
+            m.servo_set(currentservo, currentmovarraycalc[index][0][currentservo], 0)
+#            print currentservo
+            print currentmovarraycalc[index][0][currentservo]
+            pass
         currentservo = currentservo + 1
         if currentservo == 19:
             currentservo = 0
@@ -877,7 +887,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         if channel == 135:  # shutdown server
             self.write_message("shutting down the server")
             shutdown()
-        if channel == 140:  # walk possition slider
+        if channel == 140:  # movement possition slider
             self.write_message("walking")
             m.servo_slider(int(command))
             print "step: %d position: %d" % (channel, int(command))
