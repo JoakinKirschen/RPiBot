@@ -1,0 +1,406 @@
+<html>
+  <head>
+    <meta content='width=device-width, initial-scale=1' name='viewport'/>
+    <meta charset="UTF-8">
+    <style>
+        body { margin: 0px; padding: 0px; }
+        canvas { border: 1px solid #9C9898; }
+        slider { border: 3px solid #9C9898; padding: 10px; }
+    </style>
+    <link rel="stylesheet" href="css/robot.css">
+    <link rel="stylesheet" href="css/roundslider.min.css">
+    <link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css"/>
+    <script src="js/mediastream.js"></script>
+    <script src="js/sliders.js"></script>
+    <script src="js/jquery-1.11.3.min.js"></script>
+    <script src="js/jquery-ui.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="js/jquery.mobile-1.4.5.min.js"></script>
+    <script src="js/roundslider.min.js"></script>
+    <script>
+        function errorFunction() {
+             alert('Stream stopped');
+        }
+    </script>
+    <script>
+
+      var socket = new WebSocket("ws://192.168.40.1:8090/ws");
+
+      socket.onopen = function(){
+        console.log("connected");
+        sendmsg("155","0");  //populate movement list
+      };
+//exec code
+//002:update slider values
+      socket.onmessage = function (message) {
+      execcode=(message.data.substring(0, 3))
+      console.log("execcode: " + execcode)
+        if (execcode == "001")
+        {
+            console.log("It worked");
+        }
+        if (execcode == "002")//update slider values
+        {
+            console.log("Updating slider");
+            var array = message.data.split(";");
+            var inchannel =  parseInt(array[1]);
+            var inposition =  parseInt(array[2]);
+            console.log("receiving channel: " + inchannel + "  position:" + inposition);
+            $( "#slider".concat(inchannel)).val(inposition).slider("refresh");
+        } 
+        if (execcode == "003")//add movement to menuitem
+        {
+            var newname = message.data.substring(3, 6) + " - " + message.data.substring(6);
+            //Creates the item
+            var itemval= '<option value="' + newname + '">' + newname + '</option>';
+            //Appends it within your select element
+            $("#select-native-1").append(itemval);
+        }
+        if (execcode == "004")//remove from movement menu
+        {
+            var name = message.data.substring(3, 6) + " - " + message.data.substring(6);
+            $("#select-native-1").find('option[value="' + name + '"]').remove();
+        }
+        if (execcode == "008")//remove from movement menu
+        {
+            $("#select-native-1").empty();
+        }
+        if (execcode == "005")//set movement to menuitem
+        {
+            var newname = message.data.substring(3, 6) + " - " + message.data.substring(6);
+            //Creates the item
+            var itemval= '<option value="' + newname + '">' + newname + '</option>';
+            //Appends it within your select element
+            console.log(newname);
+            // $("#select-native-1").val(itemval).selectmenu("refresh");
+            // $("#select-native-1").value = newname;
+            $('#select-native-1 option[value="' + newname + '"]').attr('selected', true);
+            //$('select').selectmenu('refresh');
+            $('#select-native-1').selectmenu('refresh');
+        }
+        
+        if (execcode == "007")//update-reset movementlist
+        {
+            var newname = message.data.substring(3, 6) + " - " + message.data.substring(6);
+            //Creates the item
+            var itemval= '<option value="' + newname + '">' + newname + '</option>';
+            //Appends it within your select element
+            console.log(newname);
+            // $("#select-native-1").val(itemval).selectmenu("refresh");
+            // $("#select-native-1").value = newname;
+            $('#select-native-1 option[value="' + newname + '"]').attr('selected', true);
+            //$('select').selectmenu('refresh');
+            $('#select-native-1').selectmenu('refresh');
+        }
+        
+        if (execcode == "006")//set roundslider range + value
+        {
+            //var maxvalue = parseInt(message.data.substring(3, 6)); 
+            //var setvalue = parseInt(message.data.substring(6));
+            var array = message.data.split(";");
+            var maxvalue =  parseInt(array[1]);
+            var setvalue =  parseInt(array[2]);
+            //Creates the item
+            if (maxvalue != 999) {$("#sliderA").roundSlider("option", "max", maxvalue );}
+            if (setvalue != 999) {$("#sliderA").roundSlider("option", "value", setvalue );}
+            //if (maxvalue != 999) {$("#sliderA").roundSlider({max: maxvalue});}
+            //if (setvalue != 999) {$("#sliderA").roundSlider({value: setvalue});}
+            //$("#sliderA").roundSlider('refresh')
+        }
+    };
+
+      socket.onclose = function(){
+        console.log("disconnected");
+      };
+
+      sendmsg = function(chan, msg) {
+        var message = chan + msg;
+        socket.send(message);
+      };
+    </script>
+    <script type="text/javascript">
+    //<![CDATA[
+        $(window).load(function(){
+        $("#slider0, #slider1, #slider2, #slider3, #slider4, #slider5, #slider6, #slider7, #slider8, #slider9, #slider20, #slider15, #slider21, #slider22").change(function() {
+            var sVal = $(this).val();
+            var sName = $(this).attr("id").substring(6);
+            var pref = "100".substring(0, (3 - sName.length)).concat(sName);
+            sendmsg(pref, sVal);
+            console.log("receiving: " + sVal + sName);
+
+        });
+        $('#rst_btn').click(function() {
+            sendmsg("130","0");
+            //$("#sliderA").roundSlider("disable");
+        });
+        $('#run_btn').click(function() {
+            sendmsg("133","0");
+            //$("#sliderA").roundSlider("disable");
+        });
+        $('#shtdwn_btn').click(function() {
+            sendmsg("135","0");
+            //$("#sliderA").roundSlider("disable");
+        });
+        // Step manipulation system
+        $('#svstp_btn').click(function() {
+            var sVal1 = $("#select-native-1").val();//movement select
+            sVal1 = sVal1.substring(0, 3)
+            var sVal2 = $("#sliderA").roundSlider('getValue');
+            console.log(sVal2);
+            var text = "";
+            var suf = sVal1;
+            var i = 0;
+            while (i < 20) {  //amount of servos
+                text = $("#slider".concat(i)).val();
+                suf = suf.concat(";".concat(text));
+                i++;
+            }
+            text = $("#slider22").val();
+            suf = suf.concat(";".concat(text));
+            console.log("sending: " + suf);
+            sendmsg("150",suf);
+        });
+        $('#addstp_btn').click(function() {
+            var sVal1 = $("#select-native-1").val();//movement select test
+            sVal1 = sVal1.substring(0, 3)
+            var sVal2 = $("#sliderA").roundSlider('getValue');//step possition
+            sVal2 = "000".substring(sVal2.length).concat(sVal2);
+            console.log(sVal2);
+            var sVal = sVal1 + sVal2
+            if (sVal1 != ""){
+                sendmsg("151",sVal);
+        }
+        });
+        $('#delstp_btn').click(function() {
+           var sVal1 = $("#select-native-1").val();//movement select
+            sVal1 = sVal1.substring(0, 3)
+            var sVal2 = $("#sliderA").roundSlider('getValue');//step possition
+            sVal2 = "000".substring(sVal2.length).concat(sVal2);
+            console.log(sVal2);
+            var sVal = sVal1 + sVal2
+            if (sVal1 != ""){sendmsg("152",sVal);}
+        });
+        // Create movement system
+        $('#addm_btn').click(function() {
+            var sName = $("#mov_newname").val();
+            if (sName != ""){sendmsg("153",sName);}
+        });
+        $('#delm_btn').click(function() {
+            var sVal = $("#select-native-1").val();
+            sVal = sVal.substring(0, 3)
+            if (sVal != ""){sendmsg("154",sVal);}
+        });
+        $('#edditm_btn').click(function() {
+            var sId = $("#select-native-1").val();
+            sId = sId.substring(0, 3)
+            var sName = $("#mov_newname").val();
+            var sSpeed = $("#slider22").val();
+            sVal = sName.concat(";".concat(sSpeed));
+            sVal = sVal.concat(";".concat(sId));
+            if (sName != ""){sendmsg("157",sVal);}
+        });
+        $("#command").keyup(function(){
+            var sVal = $(this).val();
+            if (sVal == "reset"){sendmsg("130","0");}
+            if (sVal == "walk"){sendmsg("131","0");}
+            if (sVal == "w2"){sendmsg("132","0");}
+        });
+        $("#sliderA").roundSlider({
+            max: 20,
+            value: 0,
+            drag: function (e) {
+            console.log(e.value);
+            sendmsg("140", e.value)
+            },
+            change: function (e) {
+            console.log(e.value);
+            sendmsg("140", e.value)
+            }
+        });
+        $('#select-native-1').change(function(e) {
+            var sVal = $(this).val();
+            console.log(e.value);
+            sendmsg("156",sVal);
+            
+        });
+        
+        });//]]>
+    </script>
+
+    <title>
+
+            Humanoid Robot Remote
+
+    </title>
+  </head>
+  <body>
+    <div id="body">
+        <div id="reset">
+            <div class="ui-grid-b gridControlGroup" data-iconpos="center">
+                <div class="ui-block-a"><a href="#" class="ui-btn">Off</a></div>
+                <div class="ui-block-b"><a href="#" class="ui-btn">Seq</a></div>
+                <div class="ui-block-c"><a href="#" class="ui-btn">Mov</a></div>
+
+                <div class="ui-block-a"><a href="#" class="ui-btn">Seq 1</a></div>
+                <div class="ui-block-b"><a href="index.html" data-role="button" data-icon="arrow-u" data-theme="a" data-iconpos="top"></a></div>
+                <div class="ui-block-c"><a href="#" class="ui-btn">Seq 2</a></div>
+
+                <div class="ui-block-a"><a href="index.html" data-role="button" data-icon="arrow-l" data-theme="a" data-iconpos="top"></a></div>
+                <div class="ui-block-b"><a href="index.html" data-role="button" data-icon="delete" data-theme="a" data-iconpos="top"></a></div>
+                <div class="ui-block-c"><a href="index.html" data-role="button" data-icon="arrow-r" data-theme="a" data-iconpos="top"></a></div>
+                
+                <div class="ui-block-a"><a href="#" class="ui-btn">Seq 3</a></div>
+                <div class="ui-block-b"><a href="index.html" data-role="button" data-icon="arrow-d" data-theme="a" data-iconpos="bottom"></a></div>
+                <div class="ui-block-c"><a href="#" class="ui-btn">Seq 4</a></div>
+
+                <div class="ui-block-a"><a href="#" class="ui-btn">Seq 5</a></div>
+                <div class="ui-block-b"><a href="#" class="ui-btn">Seq 6</a></div>
+                <div class="ui-block-c"><a href="#" class="ui-btn">Seq 7</a></div>
+            </div>    
+        </div>
+<!--    <div id="reset">
+    <input class="floating-box" type="button" id="shtdwn_btn" value="Stop Server" />
+    <input class="floating-box" type="button" id="rst_btn" value="Reset Button" />
+    </div>
+    <div class="floating-box" id="sliderA">
+    </div>
+    <div id="mov_container">
+        
+        <label for="slider00">Loop Amount:</label>
+        <input type="range" name="slider" id="slider21" value="1" min="1" max="100"  />
+        
+        <p>
+        <label for="slider01">Speed: in 0.1sec</label>
+        <input type="range" name="slider" id="slider22" step="2" value="20" min="2" max="100"  />
+        </p>
+        <input class="floating-box" type="button" id="run_btn" value="Run" />
+        
+    </div>
+    <div id="mov_container">
+    
+        <label for="select-native-1">Movement options:</label>
+            <select name="select-native-1" id="select-native-1" >
+                <option value="1">The 1st Option</option>
+                <option value="2">The 2nd Option</option>
+                <option value="3">The 3rd Option</option>
+                <option value="4">The 4th Option</option> 
+            </select>
+    
+        
+        <div id="small-button">
+        <input class="floating-box" type="button" id="addstp_btn" value="Insert Step" />
+        </div>
+        <div id="small-button">
+        <input class="floating-box" type="button" id="delstp_btn" value="Delete Step" />
+        </div>
+        <input class="floating-box" type="button" id="svstp_btn" value="Save Position" />
+        
+    </div>
+    <div id="mov_container">
+         <label for="mov_newname">New movement name:</label>
+        <input label="text" required type="text" id="mov_newname" title="<host>:<port>, default address is autodetected"/>
+        <div id="small-button">
+        <input class="floating-box" type="button" id="addm_btn" value="Add" />
+        </div>
+        <div id="small-button">
+        <input class="floating-box" type="button" id="delm_btn" value="Delete" />
+        </div>
+        <input class="floating-box" type="button" id="edditm_btn" value="Edit" />
+        
+    </div>
+    <div id="header" class="cf"></div>
+    <div id="main" class="cf">
+        <div id="content-1">
+
+                    <p>
+                    <label for="slider9">9 Hip left:</label>
+                    <input type="range" name="slider" id="slider9" value="0" min="-100" max="100"  />
+                    </p>
+
+
+                    <p>
+                    <label for="slider7">7 Leg left:</label>
+                    <input type="range" name="slider" id="slider7" value="0" min="-200" max="200"  />
+                    </p>
+
+
+                    <p>
+                    <label for="slider5">5 Leg left:</label>
+                    <input type="range" name="slider" id="slider5" value="0" min="-200" max="200"  />
+                    </p>
+
+                    <p>
+                    <label for="slider3">3 Leg left:</label>
+                    <input type="range" name="slider" id="slider3" value="0" min="-200" max="200"  />
+                    </p>
+
+                    <p>
+                    <label for="slider1">1 Foot left:</label>
+                    <input type="range" name="slider" id="slider1" value="0" min="-100" max="100"  />
+                    </p>
+
+
+        </div>
+    <div id="content-2">
+        <div id="content-2-1">
+                    <p>
+                    <label for="slider20">Hip movement:</label>
+                    <input type="range" name="slider" id="slider20" value="0" min="-100" max="100"  />
+                    </p>
+                    <p>
+                    <label for="slider15">Camera rotate:</label>
+                    <input type="range" name="slider" id="slider15" value="0" min="-100" max="100"  />
+                    </p>
+                    <input required type="text" id="command" title="<host>:<port>, default address is autodetected"/><br>
+        <div id="container">
+            <div id="remote">
+                <video id="remote-video" autoplay=""  style="border:1px solid" width="100%" height="auto">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+
+        <div id="controls">
+            Signalling Server Address: <input required type="text" id="signalling_server2" value="192.168.40.1:8080" title="<host>:<port>, default address is autodetected"/><br>
+            <label for="twoway_audio">Enable two-way audio</label>
+            <input type="checkbox" id="twoway_audio" name="twoway_audio" value="0" title="stream from a local audio input source (e.g. microphone) to the remote peer"><br>
+            <button id="start" onclick="start();">Start</button>
+            <button disabled id="stop" onclick="stop();">Stop</button>
+            <button id="mute" onclick="mute();">Mute/Unmute</button>
+            <button id="fullscreen" onclick="fullscreen();">Fullscreen</button>
+        </div><br>
+        <a target="_top" href="/">home</a>&nbsp;<a href="http://192.168.40.1:8080/panel" target="_blank" title="change the image settings on-the-fly">control panel</a>
+    <a target="_top" href="/">home</a>&nbsp;<a href="/panel" target="_blank" title="change the image settings on-the-fly">control panel</a>
+        </div>
+        <div id="content-2-2">
+                    <p>
+                    <label for="slider8">8 Hip right:</label>
+                    <input type="range" name="slider" id="slider8" value="0" min="-100" max="100"  />
+                    </p>
+                    <p>
+                    <label for="slider6">6 Leg right:</label>
+                    <input type="range" name="slider" id="slider6" value="0" min="-200" max="200"  />
+                    </p>
+                    <p>
+                    <label for="slider4">4 Leg right:</label>
+                    <input type="range" name="slider" id="slider4" value="0" min="-200" max="200"  />
+                    </p>
+                    <p>
+                    <label for="slider2">2 Leg right:</label>
+                    <input type="range" name="slider" id="slider2" value="0" min="-200" max="200"  />
+                    </p>
+                    <p>
+                    <label for="slider0">0 Foot right:</label>
+                    <input type="range" name="slider" id="slider0" value="0" min="-100" max="100"  />
+                    </p>
+
+        </div>
+    </div>
+
+    </div>
+    <div id="footer" class="cf"></div>
+    </div>
+    </div>
+    </div>-->
+  </body>
+</html>
