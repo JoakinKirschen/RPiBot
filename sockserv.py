@@ -471,11 +471,11 @@ class motion:
         while z < 1: # amount of loops 
             y = 0
             #send_to_all_clients("006;" + str(ticks - 1) + ";" + str(y))
-            while y < (len(array)):
+            while y < (len(array))-1:
                 if z == loopamount - 1:
                     w = 0
                 else:
-                    w = 1
+                    w = 0
                 divider = array[y][20]/2
                 tempmovpossition = y
                 x = 0
@@ -485,16 +485,16 @@ class motion:
                     temparray = []
                     seq = 0
                     while seq < (len(array[y])):
-                        if y == (len(array))-1: #this sets the movement after the last possition to reset the loop to possition 0
-                            if array[y][seq] == array[0][seq]:
-                                temparray.append(array[y][seq])
-                            elif array[y][seq] is None:
-                                temparray.append(array[0][seq])
-                            elif array[0][seq] is None:
-                                temparray.append(array[y][seq])
-                            else: 
-                                temparray.append(int(array[y][seq]-((array[y][seq]-array[0][seq])*(x/divider))))
-                        else:
+#                        if y == (len(array))-1: #this sets the movement after the last possition to reset the loop to possition 0
+#                            if array[y][seq] == array[0][seq]:
+#                                temparray.append(array[y][seq])
+#                            elif array[y][seq] is None:
+#                                temparray.append(array[0][seq])
+#                            elif array[0][seq] is None:
+#                                temparray.append(array[y][seq])
+#                            else: 
+#                                temparray.append(int(array[y][seq]-((array[y][seq]-array[0][seq])*(x/divider))))
+#                        else:
                             if array[y][seq] == array[y + 1][seq]:
                                 temparray.append(array[y][seq])
                             elif array[y][seq] is None:
@@ -503,7 +503,8 @@ class motion:
                                 temparray.append(array[y][seq])
                             else: 
                                 temparray.append(int(array[y][seq]-((array[y][seq]-array[y+1][seq])*(x/divider))))
-                        seq += 1
+                            # add end possition
+                            seq += 1
                     i = 0
                     timer = timer + 200 #array[y][(len(array[y]))-1]/divider
 #                    print (timer)
