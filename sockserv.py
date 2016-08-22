@@ -349,7 +349,7 @@ class motion:
             mes = "002;" + str(sliderid) + ";" + str(newpos)
             #mes = "002" + motion.servoset[channel][0] + "%d" % (newpos)
             send_to_all_clients(mes)
-            print 'slider set'
+            #print 'slider set'
     
     def servo_reset_sliders(self):
         global currentmovpossition
@@ -360,7 +360,7 @@ class motion:
     
     def servo_set(self, channel, pos, incr):
 #        pwm1.setPWMFreq(60)
-        print channel
+#        print channel
         curpos = motion.servoset[channel][2] - motion.servoset[channel][1]
         if incr == 1:
             motion.servoset[channel][2] = motion.servoset[channel][2] + pos
@@ -370,9 +370,9 @@ class motion:
         if channel < 16:
             pwm1.setPWM(channel, 0, int(motion.servoset[channel][2]))
         else:
-            pwm2.setPWM(channel, 0, int(motion.servoset[channel][2]))
+            pwm2.setPWM((channel-16), 0, int(motion.servoset[channel][2]))
         self.servo_update_slider(channel, curpos, newpos)
-        print "Servo: %d - Position %d" % (channel, motion.servoset[channel][2])
+#        print "Servo: %d - Position %d" % (channel, motion.servoset[channel][2])
     
     def g_left_right(self, pos, incr):
         self.servo_set(9, -pos, incr)
@@ -437,6 +437,7 @@ class motion:
 #            z += 1
     def run (self):  
         movarraysequence = []
+        print ("dpfokkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
         movarraysequence.append(startpos)
         x = 0
         while x < loopamount: # amount of loops
@@ -447,7 +448,8 @@ class motion:
             x += 1
         movarraysequence.append(endpos)
         self.createmovarray(movarraysequence)
-        print (movarraysequence)
+#        print (movarraysequence)
+        print ("dpfokkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
         
 
     def createmovarray(self, movarraysequence):
@@ -460,6 +462,7 @@ class motion:
 #        print uptime
         currentmovarraycalcinitime = uptime
         currentmovarraycalcendtime = [] 
+        currentmovarraycalc = []
         currenttimingarray = [] # array of 
         array = movarraysequence
 #        ticks = currentmovticks
@@ -472,15 +475,11 @@ class motion:
             y = 0
             #send_to_all_clients("006;" + str(ticks - 1) + ";" + str(y))
             while y < (len(array))-1:
-                if z == loopamount - 1:
-                    w = 0
-                else:
-                    w = 0
                 divider = array[y][20]/2
                 tempmovpossition = y
                 x = 0
 #                while x <= devider: #stop using fixed devider make chunks of 10ms to inject in loop
-                while w <= divider:
+                while x <= divider:
 #                    print divider
                     temparray = []
                     seq = 0
@@ -523,7 +522,6 @@ class motion:
 #                            self.servo_set(i, pos, 0)
 #                        i += 1
                     x += 1
-                    w += 1
 #                    time.sleep(0.02)
 #                    print (temparray)
 #                    print (currentmovarraycalc)
@@ -534,7 +532,9 @@ class motion:
 #        currenttimingarray = [x / myInt for x in currenttimingarray]
 #        print currentmovendtime
         print (currenttimingarray)
+        print "333333333333333333"
         print (currentmovarraycalc)
+        print "333333333333333333"
     
     def servo_slider(self, nextpos):
         global currentmovpossition
@@ -573,7 +573,6 @@ class motion:
         send_to_all_clients("006;" + str(len(array) - 1) + ";" + str(nextpos))
 
     def servo_reset(self):
-#        pwm.setPWMFreq(60)                       # Set frequency to 60 Hz
         walkpos = 0
         y = 0
         resolution = 20.0
@@ -597,8 +596,6 @@ class motion:
             x += 1
             time.sleep(0.01)
 
-
-
 m = motion()
 db = MovDatabase()
 
@@ -621,18 +618,21 @@ def robotUpdate():
     supdate = 200 #ms
     if uptime >= currentmovarraycalcinitime and uptime < currentmovarraycalcendtime:
         index = currenttimingarray.index(int(math.floor((uptime - currentmovarraycalcinitime)/supdate))*supdate + supdate)
+        print index
+        print len(currentmovarraycalc)
 #        print currentmovarraycalc[index][currentservo]
         if str(currentmovarraycalc[index][0][currentservo]) != "None":
-#            m.servo_set(currentservo, currentmovarraycalc[index][0][currentservo], 0)
+            m.servo_set(currentservo, currentmovarraycalc[index][0][currentservo], 0)
 #            print currentservo
 #            print currentmovarraycalc[index][0][currentservo]
             pass
         currentservo = currentservo + 1
-        if currentservo == 19:
+        if currentservo == 20:
             currentservo = 0
-    
-#    print uptime
-#    print currentservo
+            print currentmovarraycalc[index][0][currentservo]
+            print uptime - currentmovarraycalcinitime
+#        print currentservo
+#    print currenttimingarray
 #    global robot
 #    global isClosing
     
