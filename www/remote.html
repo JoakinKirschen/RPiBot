@@ -3,9 +3,14 @@
     <meta content='width=device-width, initial-scale=1' name='viewport'/>
     <meta charset="UTF-8">
     <style>
-        body { margin: 0px; padding: 0px; }
-        canvas { border: 1px solid #9C9898; }
-        slider { border: 3px solid #9C9898; padding: 10px; }
+
+    
+    
+    .ui-btn-icon-notext {
+    
+    height: 42px !important;
+    display: block !important;
+    }
     </style>
     <link rel="stylesheet" href="css/robot.css">
     <link rel="stylesheet" href="css/roundslider.min.css">
@@ -234,29 +239,78 @@
     </title>
   </head>
   <body>
-    <div id="body">
-        <div id="reset">
-            <div class="ui-grid-b gridControlGroup" data-iconpos="center">
-                <div class="ui-block-a"><a href="#" class="ui-btn">Off</a></div>
-                <div class="ui-block-b"><a href="#" class="ui-btn">Seq</a></div>
-                <div class="ui-block-c"><a href="#" class="ui-btn">Mov</a></div>
+    <div data-role="footer" data-position="fixed" id="footer">
+    <div data-role="controlgroup" data-type="horizontal" class="ui-grid-a">
+        <a href="#" data-role="button" data-icon="home" id="homePageButton">Home Page</a>
+        <a href="#" data-role="button" data-icon="forward" data-iconpos="right" id="logOutButton">Log Out</a>
+    </div>
+</div>
+    <div id="remotebody">
+        <div id="grid">
+            <div class="ui-grid-b gridControlGroup" data-type="horizontal">
+                <div class="ui-block-a"><input class="floating-box" type="button" id="remt_btn" value="Delete Step" /></div>
+                <div class="ui-block-b"><input class="floating-box" type="button" id="rmtstop_btn" value="Stand" /></div>
+                <div class="ui-block-c"><input class="floating-box" type="button" id="rmtsht_btn" value="Shutdown" /></div>
 
-                <div class="ui-block-a"><a href="#" class="ui-btn">Seq 1</a></div>
-                <div class="ui-block-b"><a href="index.html" data-role="button" data-icon="arrow-u" data-theme="a" data-iconpos="top"></a></div>
-                <div class="ui-block-c"><a href="#" class="ui-btn">Seq 2</a></div>
-
-                <div class="ui-block-a"><a href="index.html" data-role="button" data-icon="arrow-l" data-theme="a" data-iconpos="top"></a></div>
-                <div class="ui-block-b"><a href="index.html" data-role="button" data-icon="delete" data-theme="a" data-iconpos="top"></a></div>
-                <div class="ui-block-c"><a href="index.html" data-role="button" data-icon="arrow-r" data-theme="a" data-iconpos="top"></a></div>
+                <div class="ui-block-a"></div>
+                <div class="ui-block-b"><input class="floating-box" type="button" id="rmtup_btn" value="&#8613" /></div>
+                <div class="ui-block-c"></div>
                 
-                <div class="ui-block-a"><a href="#" class="ui-btn">Seq 3</a></div>
-                <div class="ui-block-b"><a href="index.html" data-role="button" data-icon="arrow-d" data-theme="a" data-iconpos="bottom"></a></div>
-                <div class="ui-block-c"><a href="#" class="ui-btn">Seq 4</a></div>
+                <div class="ui-block-a"><input class="floating-box" type="button" id="rmtlft_btn" value="&#8612" /></div>
+                <div class="ui-block-b"><input class="floating-box" type="button" id="rmtrght_btn" value="&#9632" /></div>
+                <div class="ui-block-c"><input class="floating-box" type="button" id="rmtrght_btn" value="&#8614" /></div>
+                
+                <div class="ui-block-a"></div>
+                <div class="ui-block-b"><input class="floating-box" type="button" id="rmtrght_btn" value="&#8615" /></div>
+                <div class="ui-block-c"></div>
 
-                <div class="ui-block-a"><a href="#" class="ui-btn">Seq 5</a></div>
-                <div class="ui-block-b"><a href="#" class="ui-btn">Seq 6</a></div>
-                <div class="ui-block-c"><a href="#" class="ui-btn">Seq 7</a></div>
+                <div class="ui-block-a">
+                    <select name="select-native-1" id="select-native-1"></select>
+                </div>
+                <div class="ui-block-b"><div id="spacer2"><input class="floating-box" type="button" id="rmtrght_btn" value="&#8615" /></div></div>
+                <div class="ui-block-c"><div id="spacer2"><input class="floating-box" type="button" id="rmtrght_btn" value="&#8615" /></div></div>
             </div>    
+        </div>
+        
+        
+<form>
+<fieldset data-role="controlgroup" data-type="horizontal">
+    <legend>Horizontal controlgroup:</legend>
+    <label for="select-native-11">Select A</label>
+    <select name="select-native-11" id="select-native-11">
+        <option value="#">One</option>
+        <option value="#">Two</option>
+        <option value="#">Three</option>
+    </select>
+    <label for="select-native-12">Select B</label>
+    <input class="floating-box" type="button" id="rmtrght_btn" value="&#8615" /></div>
+    <label for="select-native-13">Select C</label>
+    <input class="floating-box" type="button" id="rmtrght_btn" value="&#8615" /></div>
+</fieldset>
+</form>
+        
+        <p>
+                    <label for="slider0">Speedbooster:</label>
+                    <input type="range" name="slider" id="slider0" value="0" min="-100" max="100"  />
+        </p>
+        <div id="container">
+            <div id="remote">
+                <video id="remote-video" autoplay=""  style="border:1px solid" width="100%" align="center" height="auto">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+        <div id="controls">
+            Signalling Server Address: <input required type="text" id="signalling_server2" value="192.168.40.1:8080" title="<host>:<port>, default address is autodetected"/><br>
+            <label for="twoway_audio">Enable two-way audio</label>
+            <input type="checkbox" id="twoway_audio" name="twoway_audio" value="0" title="stream from a local audio input source (e.g. microphone) to the remote peer"><br>
+            <button id="start" onclick="start();">Start</button>
+            <button disabled id="stop" onclick="stop();">Stop</button>
+            <button id="mute" onclick="mute();">Mute/Unmute</button>
+            <button id="fullscreen" onclick="fullscreen();">Fullscreen</button>
+        </div><br>
+        <a target="_top" href="/">home</a>&nbsp;<a href="http://192.168.40.1:8080/panel" target="_blank" title="change the image settings on-the-fly">control panel</a>
+<!--    <a target="_top" href="/">home</a>&nbsp;<a href="/panel" target="_blank" title="change the image settings on-the-fly">control panel</a>-->
         </div>
 <!--    <div id="reset">
     <input class="floating-box" type="button" id="shtdwn_btn" value="Stop Server" />

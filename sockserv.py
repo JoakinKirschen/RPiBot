@@ -292,21 +292,21 @@ class motion:
     walkpos = 0
     servoset = [
         ["servo00", 380, 380],  # Foot right
-        ["servo01", 382, 382],  # Foot left
+        ["servo01", 394, 394],  # Foot left
         ["servo02", 391, 391],  # Leg right bottom
-        ["servo03", 268, 268],  # Leg left bottom
+        ["servo03", 272, 272],  # Leg left bottom
         ["servo04", 544, 544],  # Leg right mid
-        ["servo05", 238, 238],  # Leg left mid
-        ["servo06", 360, 360],  # Leg right top
-        ["servo07", 536, 536],  # Leg left top
+        ["servo05", 226, 226],  # Leg left mid
+        ["servo06", 352, 352],  # Leg right top
+        ["servo07", 544, 544],  # Leg left top
         ["servo08", 362, 362],  # Hip right
-        ["servo09", 350, 350],  # Hip left
+        ["servo09", 358, 358],  # Hip left
         ["servo10", 375, 375],
         ["servo11", 375, 375],
         ["servo12", 375, 375],
         ["servo13", 375, 375],
         ["servo14", 375, 375],
-        ["servo15", 304, 304],  # Rotate camera
+        ["servo15", 394, 394],  # Rotate camera
         ["servo16", 375, 375],
         ["servo17", 375, 375],
         ["servo18", 375, 375],
@@ -367,10 +367,10 @@ class motion:
         else:
             motion.servoset[channel][2] = motion.servoset[channel][1] + pos
         newpos = motion.servoset[channel][2] - motion.servoset[channel][1]
-        if channel < 16:
+        if channel < 6:
             pwm1.setPWM(channel, 0, int(motion.servoset[channel][2]))
         else:
-            pwm2.setPWM((channel-16), 0, int(motion.servoset[channel][2]))
+            pwm2.setPWM((channel-6), 0, int(motion.servoset[channel][2]))
         self.servo_update_slider(channel, curpos, newpos)
 #        print "Servo: %d - Position %d" % (channel, motion.servoset[channel][2])
     
@@ -437,7 +437,6 @@ class motion:
 #            z += 1
     def run (self):  
         movarraysequence = []
-        print ("dpfokkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
         movarraysequence.append(startpos)
         x = 0
         while x < loopamount: # amount of loops
@@ -449,7 +448,6 @@ class motion:
         movarraysequence.append(endpos)
         self.createmovarray(movarraysequence)
 #        print (movarraysequence)
-        print ("dpfokkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
         
 
     def createmovarray(self, movarraysequence):
@@ -747,7 +745,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             print "step: %d position: %d" % (channel, int(command))
         if channel == 150:  # Save current position
             self.write_message("saving current positions")
-            db.editStepQuery(command)
+            editStep(command)
             print "step: %d position: %s" % (channel, command)
         if channel == 151:  # Add step 
             addStep(command)

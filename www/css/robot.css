@@ -5,6 +5,20 @@ body {
 	color:#000;
 	background:#fff;
 }
+
+#remotebody {
+	margin:10px;
+	padding:10px;
+	color:#000;
+	background:#fff;
+}
+
+.spacer2 {
+
+   padding-top: 10px;
+
+}
+
 .sliderframe {
    margin: 1%;
    padding: 1%;
@@ -42,6 +56,25 @@ body {
     -webkit-border-radius: 1em;
     border-radius: 1em;
 }
+
+.splitbutcont {
+    vertical-align: top;
+    display: inline-block;
+    width: 100%;
+    
+}
+
+.splitbut1 {
+    vertical-align: top;
+    display: inline-block;
+    width: 75%;
+}
+.splitbut2 {
+    vertical-align: top;
+    display: inline-block;
+    width: 20%;
+}
+
 
 #small-button { 
     width: 48%;
@@ -100,7 +133,7 @@ body {
 	background:#dff;
 }
 #footer {
-	padding:1%;
+
 	background:#ff9;
 }
 /* Easy clearing of floats (see http://positioniseverything.net/easyclearing.html) */
