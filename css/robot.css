@@ -1,0 +1,93 @@
+html,
+body {
+	margin:0;
+	padding:0;
+	color:#000;
+	background:#fff;
+}
+.sliderframe {
+   margin: 1%;
+   padding: 1%;
+   vertical-align: top;
+}
+.floating-box {
+    vertical-align: top;
+    display: inline-block;
+    margin:1%;
+    margin-right:1%;
+    vertical-align: top;
+
+}
+#small-button { 
+    width: 48%;
+    display: inline-block;
+    vertical-align: bottom;
+    padding: 0px;
+    margin:0px;
+    }
+#btn_container {
+    vertical-align: top;
+    display: inline-block;
+    width: 30%;
+}
+#mov_container {
+    vertical-align: top;
+    display: inline-block;
+    width: 25%;
+    margin: 1%;  
+}
+
+#reset {
+	width:100%px;
+	height: 5%;
+	margin:0 auto;
+	background:#ddd;
+}
+#body {
+	width:100%;
+	margin:0 auto;
+	background:#ddd;
+}
+#header {
+	padding:1%;
+	background:#fdd;
+}
+#content-1 {
+	float:left;
+	width:28%;
+	padding:1%;
+	background:#bfb;
+}
+#content-2 {
+	float:right;
+	width:70%;
+}
+#content-2-1 {
+	float:left;
+	width:56%;
+	padding:1%;
+	background:#ddf;
+}
+#content-2-2 {
+	float:right;
+	width:40%;
+	padding:1%;
+	background:#dff;
+}
+#footer {
+	padding:1%;
+	background:#ff9;
+}
+/* Easy clearing of floats (see http://positioniseverything.net/easyclearing.html) */
+.cf:after {
+	display:block;
+	clear:both;
+	height:0;
+	visibility:hidden;
+	content:" ";
+	font-size:0;
+}
+/* Does not validate – use conditional comments for this bit if you want valid CSS */
+.cf {*zoom:1;}
+	
+
