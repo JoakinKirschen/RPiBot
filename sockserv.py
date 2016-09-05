@@ -708,6 +708,8 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         print 'message received %s' % message
         global loopamount
         #self.write_message(message)
+        #channel 1XX is from editor
+        #channel 2XX is from remote
         channel = int(message[0:3])
         command = (message[3:])
         if channel < 116:
