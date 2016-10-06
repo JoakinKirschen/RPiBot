@@ -38,6 +38,10 @@ currentstepspeed = "ns"
 uptime = 0
 startpos = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20)
 endpos =   (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20)
+remote_enable = 0
+remote_movement = "stp" # stp, fwd, rev, lft, rght 
+remote_change = 0
+
     
 def setupNewClient(client): #initialize the movement menu
     global currentmovid
@@ -173,32 +177,30 @@ def delMov(movid): #must remove coresponding steptable
     global currentmovspeed
     global currentstepspeed
     global currentmovpossition
-    
-    movarray = db.getMovList()
-    
-    if len(movarray) != 1:
-        movdata = db.getMovQuery(movid)
-        db.delMovQuery(currentmovid)
-        id = str(movdata[0])
-        name = movdata[1]
-        while len(id) != 3:
-                id = "0%s" % (id)
-        # Remove movement from list
-        send_to_all_clients("004%s%s" % (id, name))
-        print('Movement query removed')
-        
-        #cursor.execute('''SELECT * FROM movement ORDER BY ROWID ASC LIMIT 1''')
-        #data = cursor.fetchone()
-        
+    if currentmovid > 6:
         movarray = db.getMovList()
-        
-        send_to_all_clients("005%s%s" % (str(movarray[0]), movarray[1]))
-        currentmovid = movarray[0]
-        setMovArray()
-        currentstepspeed = currentmovarray[0][20]
-        currentmovspeed = movarray[2]
-        currentmovpossition = 0
-        m.servo_update_all_sliders()
+        if len(movarray) != 1:
+            movdata = db.getMovQuery(movid)
+            db.delMovQuery(currentmovid)
+            id = str(movdata[0])
+            name = movdata[1]
+            while len(id) != 3:
+                id = "0%s" % (id)
+            # Remove movement from list
+            send_to_all_clients("004%s%s" % (id, name))
+            print('Movement query removed')
+            #cursor.execute('''SELECT * FROM movement ORDER BY ROWID ASC LIMIT 1''')
+            #data = cursor.fetchone()
+            movarray = db.getMovList()
+            send_to_all_clients("005%s%s" % (str(movarray[0]), movarray[1]))
+            currentmovid = movarray[0]
+            setMovArray()
+            currentstepspeed = currentmovarray[0][20]
+            currentmovspeed = movarray[2]
+            currentmovpossition = 0
+            m.servo_update_all_sliders()
+        else:
+            print('Movement 1-6 cant be removed')
             
 def editMov(command): #steptable remains unchanged
     global movspeed
@@ -291,16 +293,16 @@ class motion:
     
     walkpos = 0
     servoset = [
-        ["servo00", 380, 380],  # Foot right
-        ["servo01", 394, 394],  # Foot left
-        ["servo02", 391, 391],  # Leg right bottom
-        ["servo03", 272, 272],  # Leg left bottom
-        ["servo04", 544, 544],  # Leg right mid
-        ["servo05", 226, 226],  # Leg left mid
-        ["servo06", 352, 352],  # Leg right top
-        ["servo07", 544, 544],  # Leg left top
-        ["servo08", 362, 362],  # Hip right
-        ["servo09", 358, 358],  # Hip left
+        ["servo00", 424, 424],  # Foot right
+        ["servo01", 392, 392],  # Foot left
+        ["servo02", 373, 373],  # Leg right bottom
+        ["servo03", 400, 400],  # Leg left bottom
+        ["servo04", 376, 376],  # Leg right mid
+        ["servo05", 420, 420],  # Leg left mid
+        ["servo06", 475, 475],  # Leg right top
+        ["servo07", 291, 291],  # Leg left top
+        ["servo08", 423, 423],  # Hip right
+        ["servo09", 427, 427],  # Hip left
         ["servo10", 375, 375],
         ["servo11", 375, 375],
         ["servo12", 375, 375],
@@ -380,61 +382,6 @@ class motion:
         self.servo_set(1, -pos, incr)
         self.servo_set(0, -pos, incr)
             
-#    def run(self):
-#        global currentmovpossition
-#        array = currentmovarray
-#        ticks = currentmovticks
-#        speed = currentmovspeed
-#        devider = 20
-#        print (array)
-#        z = 0
-#        while z < loopamount:
-#            currentmovpossition = 0
-#            y = 0
-#            #send_to_all_clients("006;" + str(ticks - 1) + ";" + str(y))
-#            while y < (len(array)):
-#                x = 0
-#                while x <= devider:
-#                    temparray = []
-#                    seq = 0
-#                    while seq < (len(array[y]))-1:
-#                        if y == (len(array))-1:
-#                            if array[y][seq] == array[0][seq]:
-#                                temparray.append(array[y][seq])
-#                            elif array[y][seq] is None:
-#                                temparray.append(array[0][seq])
-#                            elif array[0][seq] is None:
-#                                temparray.append(array[y][seq])
-#                            else: 
-#                                temparray.append(int(array[y][seq]-((array[y][seq]-array[0][seq])*(x/devider))))
-#                        else:
-#                            if array[y][seq] == array[y + 1][seq]:
-#                                temparray.append(array[y][seq])
-#                            elif array[y][seq] is None:
-#                                temparray.append(array[y + 1][seq])
-#                            elif array[y + 1][seq] is None:
-#                                temparray.append(array[y][seq])
-#                            else: 
-#                                temparray.append(int(array[y][seq]-((array[y][seq]-array[y+1][seq])*(x/devider))))
-#                        seq += 1
-#                    i = 0
-#                    while i < len(temparray):
-#                        print (i)
-#                        if temparray[i] is not None:
-#                            pos = temparray[i]
-#                            self.servo_set(i, pos, 0)
-#                        i += 1
-#                    x += 1
-#                    time.sleep(0.02)
-#                    print (temparray)
-#                y += 1
-#                if y == (len(array)):
-#                    send_to_all_clients("006;" + str(ticks - 1) + ";" + str(0))
-#                    currentmovpossition = 0
-#                else:
-#                    send_to_all_clients("006;" + str(ticks - 1) + ";" + str(y))
-#                    currentmovpossition = y
-#            z += 1
     def run (self):  
         movarraysequence = []
         movarraysequence.append(startpos)
@@ -612,8 +559,16 @@ def robotUpdate():
     global currentmovarraycalc
     global currenttimingarray
     global currentservo
+    global remote_change
+    global remote_enable
+    global remote_movement
+    
     uptime = uptime + 10
     supdate = 200 #ms
+    if remote_enable: 
+        print "remote enabled"
+    
+    
     if uptime >= currentmovarraycalcinitime and uptime < currentmovarraycalcendtime:
         index = currenttimingarray.index(int(math.floor((uptime - currentmovarraycalcinitime)/supdate))*supdate + supdate)
         print index
@@ -707,6 +662,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
     def on_message(self, message):
         print 'message received %s' % message
         global loopamount
+        global remote_movement
         #self.write_message(message)
         #channel 1XX is from editor
         #channel 2XX is from remote
@@ -777,7 +733,46 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             editMov(command)
             self.write_message("Setting movmlist")
             print "command: %d set movement list: %s" % (channel, command)
-
+        if channel == 211:  # Remote: enable
+            editMov(command)
+            self.write_message("Remote: Enable toggle")
+            print "Remote: Enable toggle"
+        if channel == 212:  # Remote: stop
+            remote_movement = "stp"
+            editMov(command)
+            self.write_message("Remote: Stop")
+            print "Remote: Stop"
+        if channel == 213:  # Remote: shutdown
+            editMov(command)
+            self.write_message("Remote: Shutdown")
+            print "Remote: Shutdown"
+        if channel == 214:  # Remote: forward
+            remote_movement = "fwd"
+            editMov(command)
+            self.write_message("Remote: Forward")
+            print "Remote: Forward"
+        if channel == 215:  # Remote: reverse
+            remote_movement = "rev"
+            editMov(command)
+            self.write_message("Remote: Reverse")
+            print "Remote: Reverse"
+        if channel == 216:  # Remote: left
+            remote_movement = "lft"
+            editMov(command)
+            self.write_message("Remote: Left")
+            print "Remote: Left"
+        if channel == 217:  # Remote: right
+            remote_movement = "rght"
+            editMov(command)
+            self.write_message("Remote: Right")
+            print "Remote: Right"
+        if channel == 218:  # Set movement list
+            editMov(command)
+            self.write_message("Setting movmlist")
+            print "command: %d set movement list: %s" % (channel, command)
+            
+            
+            
     def on_close(self):
         clients.remove(self)
         send_to_all_clients("removing client")
