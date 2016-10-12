@@ -19,14 +19,14 @@ class MovDatabase(object):
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS movement
         (
-            id         INTEGER     PRIMARY KEY     AUTOINCREMENT,
+            id         INTEGER     PRIMARY KEY     ,
             name       TEXT,
             movspeed   INTEGER
         )''')
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS steps
         (
-            id         INTEGER     PRIMARY KEY     AUTOINCREMENT,
+            id         INTEGER     PRIMARY KEY     ,
             movid      INTEGER,
             steppos    INTEGER,
             s1         INTEGER,
@@ -82,10 +82,10 @@ class MovDatabase(object):
         cursor.execute('''DELETE FROM steps WHERE movid = ? ''', (movid,))
         self.db.commit()
     
-    def editMovQuery(self, newname, mspeed, movid):
-        cursor = self.db.cursor()
-        cursor.execute('''UPDATE movement SET name=?, movspeed=? WHERE id=? ''', (newname, mspeed, movid,))
-        self.db.commit()
+#    def editMovQuery(self, newname, mspeed, movid):
+#        cursor = self.db.cursor()
+#        cursor.execute('''UPDATE movement SET name=?, movspeed=? WHERE id=? ''', (newname, mspeed, movid,))
+#        self.db.commit()
         
     def getservopos(self, movid, servonr, pos):
         servonr = int(servonr[1:])
@@ -116,7 +116,7 @@ class MovDatabase(object):
         cursor.execute('''UPDATE movement SET name=?, movspeed=? WHERE id=? ''', (newname, mspeed, movid,))
         self.db.commit()
         movspeed = mspeed
-        self.updateMovMenu()
+        # self.updateMovMenu()
         # send_to_all_clients("007%s%s" % (str(data[0]), data[1]))!!!!!!!!!!!!!!!!!!!!!!
         print('Movement query edited')
         

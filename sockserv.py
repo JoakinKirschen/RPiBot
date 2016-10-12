@@ -80,6 +80,9 @@ def setupNewClient(client): #initialize the movement menu
 def setMov(command): #sets movlist 
     global currentmovpossition
     global currentmovid
+    
+    #hier moeten we gelijdelijk terug naar 0 pos
+    
     movid = int(command[:3])
     stepsdata = db.getStepQuery(movid)
     pref = "000"[len(str(len(stepsdata) - 1)):] + str(len(stepsdata) - 1) + "000"
@@ -90,12 +93,16 @@ def setMov(command): #sets movlist
     array = currentmovarray
     currentstepspeed = array[0][20]
     d = 0
+    
+    #onderstaande loop mogelijk niet uitvoeren.
+    
     while d < len(array[0])-1:  # - 1 for the speedstep value
         pos = array[0][d]
         if str(pos) != "None":
             print str(pos)
             m.servo_set(d, pos, 0)
         d += 1
+        
     #m.servo_set(currentmovpossition, newpos, 0)
     send_to_all_clients("002;" + "22;" + str(currentstepspeed))
     movdata = db.getMovQuery(movid)
@@ -193,24 +200,20 @@ def delMov(movid): #must remove coresponding steptable
             #data = cursor.fetchone()
             movarray = db.getMovList()
             send_to_all_clients("005%s%s" % (str(movarray[0]), movarray[1]))
-            currentmovid = movarray[0]
+            currentmovid = movarray[0][0]
             setMovArray()
             currentstepspeed = currentmovarray[0][20]
             currentmovspeed = movarray[2]
             currentmovpossition = 0
             m.servo_update_all_sliders()
-        else:
-            print('Movement 1-6 cant be removed')
+    else:
+        print('Movement 1-6 cant be removed')
             
 def editMov(command): #steptable remains unchanged
     global movspeed
-    array = command.split(';')
-    print (array)
-    newname = array[0]
-    mspeed = int(array[1])
-    movid = int(array[2])
-    db.editMovQuery(newname, mspeed, movid)
-    movspeed = mspeed
+#    print (array)
+    db.editMovQuery(command)
+#    movspeed = mspeed
     updateMovMenu()
     # send_to_all_clients("007%s%s" % (str(data[0]), data[1]))!!!!!!!!!!!!!!!!!!!!!!
     print('Movement query edited')
