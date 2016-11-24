@@ -227,10 +227,11 @@ def addStep(command):
     stepsdata = db.getStepQuery(movid)
     db.addStepQuery2(movid,steppos,stepsdata)
     i = (len(stepsdata) + 1)
-    id = "000"[len(str(i - 1)):] + str(i - 1)
+    id = "000"[len(str(i - 1)):] + str(i - 1) + ";"
     #pref = "000"[len(str(i)):] + str(i) + "000"[len(str(steppos)):] + str(steppos)
-    pref = id + "000"[len(str(steppos)):] + str(steppos)
-    send_to_all_clients("006%s" % (pref))
+    pref = id + "000"[len(str(steppos)):] + str(steppos) 
+    print(pref)
+    send_to_all_clients("006;%s" % (pref))
     currentmovpossition = steppos
     print('New step inserted')
     setMovArray()
@@ -246,9 +247,9 @@ def delStep(command):
     i = len(stepsdata)
     if i > 1:
         db.delStepQuery(movid, steppos, stepsdata)
-        id = "000"[len(str(i - 2)):] + str(i - 2)
+        id = "000"[len(str(i - 2)):] + str(i - 2) + ";"
         pref = id + "000"[len(str(steppos - 1)):] + str(steppos - 1)
-        send_to_all_clients("006%s" % (pref))
+        send_to_all_clients("006;%s" % (pref))
         currentmovpossition = (steppos - 1)
         #currentstepspeed = 
         print('Step deleted')
@@ -479,10 +480,8 @@ class motion:
 #        myInt = 10
 #        currenttimingarray = [x / myInt for x in currenttimingarray]
 #        print currentmovendtime
-        print (currenttimingarray)
-        print "333333333333333333"
-        print (currentmovarraycalc)
-        print "333333333333333333"
+#        print (currenttimingarray)
+#        print (currentmovarraycalc)
     
     def servo_slider(self, nextpos):
         global currentmovpossition
@@ -510,7 +509,7 @@ class motion:
         
         while d < len(motion.servoset):
             pos = array[nextpos][d]
-            if str(pos) != "None" and pos != array[currentpos][d]:
+            if str(pos) != "None": #and pos != array[currentpos][d]:
                 print ("inloop")
                 self.servo_set(d, pos, 0)
             d += 1
@@ -737,40 +736,39 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             self.write_message("Setting movmlist")
             print "command: %d set movement list: %s" % (channel, command)
         if channel == 211:  # Remote: enable
-            editMov(command)
+            #rmtEnable(command)
             self.write_message("Remote: Enable toggle")
             print "Remote: Enable toggle"
         if channel == 212:  # Remote: stop
-            remote_movement = "stp"
-            editMov(command)
+            #rmtStop(command)
             self.write_message("Remote: Stop")
             print "Remote: Stop"
         if channel == 213:  # Remote: shutdown
-            editMov(command)
+            #rmtShutdown(command)
             self.write_message("Remote: Shutdown")
             print "Remote: Shutdown"
         if channel == 214:  # Remote: forward
             remote_movement = "fwd"
-            editMov(command)
+            #rmtMov(command)
             self.write_message("Remote: Forward")
             print "Remote: Forward"
         if channel == 215:  # Remote: reverse
             remote_movement = "rev"
-            editMov(command)
+            #rmtMov(command)
             self.write_message("Remote: Reverse")
             print "Remote: Reverse"
         if channel == 216:  # Remote: left
             remote_movement = "lft"
-            editMov(command)
+            #rmtMov(command)
             self.write_message("Remote: Left")
             print "Remote: Left"
         if channel == 217:  # Remote: right
             remote_movement = "rght"
-            editMov(command)
+            #rmtMov(command)
             self.write_message("Remote: Right")
             print "Remote: Right"
         if channel == 218:  # Set movement list
-            editMov(command)
+            #editMov(command)
             self.write_message("Setting movmlist")
             print "command: %d set movement list: %s" % (channel, command)
             

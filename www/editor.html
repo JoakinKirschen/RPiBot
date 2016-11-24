@@ -100,6 +100,7 @@
             var array = message.data.split(";");
             var maxvalue =  parseInt(array[1]);
             var setvalue =  parseInt(array[2]);
+            console.log(array);
             //Creates the item
             if (maxvalue != 999) {$("#sliderA").roundSlider("option", "max", maxvalue );}
             if (setvalue != 999) {$("#sliderA").roundSlider("option", "value", setvalue );}

@@ -5,6 +5,11 @@ body {
 	color:#000;
 	background:#fff;
 }
+
+.rs-control .rs-range-color {
+    background-color: #54BBE0;
+}
+
 .sliderframe {
    margin: 1%;
    padding: 1%;
